@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o
 
 INCLUDES = -I ./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -21,6 +21,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/interrupts/interrupts.asm.o: ./src/interrupts/interrupts.asm
 	nasm -f elf -g -o ./build/interrupts/interrupts.asm.o ./src/interrupts/interrupts.asm
+
+./build/io/io.asm.o: ./src/io/io.asm
+	nasm -f elf -g -o ./build/io/io.asm.o ./src/io/io.asm
 
 ./build/kernel.o: ./src/kernel.c
 	i686-elf-gcc ${INCLUDES} ${FLAGS} -std=gnu99 -c ./src/kernel.c -o ./build/kernel.o
