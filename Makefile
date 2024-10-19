@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o
 
 INCLUDES = -I ./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -6,9 +6,9 @@ FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign
 all: ./bin/boot.bin ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
-	dd if=./bin/kernel.bin >> ./bin/os.bin
+	dd if=./bin/kernel.bin bs=512 conv=sync >> ./bin/os.bin
 	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
-
+	dd if=./test.txt bs=512 conv=sync >> ./bin/os.bin
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin -g -o bin/boot.bin src/boot/boot.asm
 
@@ -35,10 +35,14 @@ all: ./bin/boot.bin ./bin/kernel.bin
 ./build/memory/memory.o: ./src/memory/memory.c
 	i686-elf-gcc ${INCLUDES} -I./src/memory ${FLAGS} -std=gnu99 -c ./src/memory/memory.c -o ./build/memory/memory.o
 
-
 ./build/memory/heap/heap.o: ./src/memory/heap/heap.c
 	i686-elf-gcc ${INCLUDES} -I./src/memory/heap ${FLAGS} -std=gnu99 -c ./src/memory/heap/heap.c -o ./build/memory/heap/heap.o
 
+./build/memory/paging/paging.o: ./src/memory/paging/paging.c
+	i686-elf-gcc ${INCLUDES} -I./src/memory/heap ${FLAGS} -std=gnu99 -c ./src/memory/paging/paging.c -o ./build/memory/paging/paging.o
+
+./build/memory/paging/paging.asm.o: ./src/memory/paging/paging.asm
+	nasm -f elf -g -o ./build/memory/paging/paging.asm.o ./src/memory/paging/paging.asm
 
 ./build/memory/heap/kheap.o: ./src/memory/heap/kheap.c
 	i686-elf-gcc ${INCLUDES} -I./src/memory/heap ${FLAGS} -std=gnu99 -c ./src/memory/heap/kheap.c -o ./build/memory/heap/kheap.o
@@ -46,6 +50,17 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/interrupts/interrupts.o: ./src/interrupts/interrupts.c
 	i686-elf-gcc ${INCLUDES} -I./src/interrupts ${FLAGS} -std=gnu99 -c ./src/interrupts/interrupts.c -o ./build/interrupts/interrupts.o
+
+
+./build/disk/disk.o: ./src/disk/disk.c
+	i686-elf-gcc ${INCLUDES} -I./src/disk ${FLAGS} -std=gnu99 -c ./src/disk/disk.c -o ./build/disk/disk.o
+
+./build/string/string.o: ./src/string/string.c
+	i686-elf-gcc ${INCLUDES} -I./src/string ${FLAGS} -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
+
+./build/fs/path.o: ./src/fs/path.c
+	i686-elf-gcc ${INCLUDES} -I./src/fs ${FLAGS} -std=gnu99 -c ./src/fs/path.c -o ./build/fs/path.o
+
 
 clean:
 	rm -rf ./bin/*.bin

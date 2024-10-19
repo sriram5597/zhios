@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "string/string.h"
 #include<stdint.h>
 #include<stddef.h>
 
@@ -34,14 +35,6 @@ void terminal_writechar(char c) {
     if (terminal_col >= VGA_WIDTH) {
         move_to_next_row();
     }
-}
-
-size_t strlen(const char* str) {
-    size_t len = 0;
-    while(str[len]) {
-        len++;
-    }
-    return len;
 }
 
 void print(const char* str) {

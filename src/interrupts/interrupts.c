@@ -50,5 +50,4 @@ void init_interrupts() {
     set_interrupt(0x21, int21h);
 
     load_interrupts(&interrupt_table);
-    enable_interrupts();
 }

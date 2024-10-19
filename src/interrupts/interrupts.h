@@ -17,5 +17,6 @@ struct interrupt_table {
 } __attribute__((packed));
 
 void init_interrupts();
+void enable_interrupts();
 
 #endif

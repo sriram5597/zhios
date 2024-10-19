@@ -30,7 +30,6 @@ int heap_create(struct heap* heap, void* ptr, void* end, struct heap_table *tabl
         res = -EINARG;
         goto out;
     }
-    memset(heap, 0, sizeof(struct heap));
     heap -> start_address = ptr;
     heap -> table = table;
 out:
