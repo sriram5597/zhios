@@ -4,11 +4,31 @@ BITS 16
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-_start:
-    jmp short start
-    nop
+jmp short start
+nop
 
-times 33 db 0 ; to make space for bios to write bios parameter block
+; FAT16 Header
+OEMIdentifier     db 'ZHIOS   '
+BytesPerSector    dw 512
+SectorsPerCluster db 128
+ReservedSectors   dw 200
+FATCopies         db 2
+RootDirEntries    dw 64
+NumSectors        dw 0x00
+MediaType         db 0xF8
+SectorsPerFat     dw 256
+SectorsPerTrack   dw 0x20
+NumberOfHeads     dw 0x40
+HiddenSectors     dd 0x00
+LargeSectors      dd 0x773594
+
+; Extended BPS
+DriveNumber       db 0x80
+WinNtFlags        db 0x00
+Signature         db 0x29
+VolumeID          dd 0xD105
+VolumeLabel       db 'Zhios Boot '
+SystemIDString    db 'FAT16   '
 
 start:
     jmp 0x00:boot

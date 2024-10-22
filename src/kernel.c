@@ -20,10 +20,4 @@ void kernel_main() {
     kernel_page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
     enable_interrupts();
     print("Hello World!\n");
-    char buffer[512];
-    DiskStream* stream = disk_stream_open(0);
-    disk_stream_seek(stream, 0x12c00);
-    disk_stream_read(stream, buffer, 20);
-    print(buffer);
-    print("\n");
 }
