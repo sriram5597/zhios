@@ -19,3 +19,12 @@ int atoi(char ch) {
 char itoa(int num) {
     return num + '0';
 }
+
+void strcpy(const char* src, char* dest) {
+    while (src != 0) {
+        *dest = *src;
+        src++;
+        dest++;
+    }
+    *dest =0x00;
+}

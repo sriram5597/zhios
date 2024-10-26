@@ -28,7 +28,7 @@ WinNtFlags        db 0x00
 Signature         db 0x29
 VolumeID          dd 0xD105
 VolumeLabel       db 'Zhios Boot '
-SystemIDString    db 'FAT16   '
+FilesystemType    db 'FAT16   '
 
 start:
     jmp 0x00:boot

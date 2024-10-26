@@ -3,16 +3,17 @@
 
 #include "disk.h"
 
-struct DiskStream {
+struct DiskStream
+{
     int pos;
-    Disk* disk;
+    struct disk *disk;
 };
 
 typedef struct DiskStream DiskStream;
 
-DiskStream* disk_stream_open(int drive_number);
-void disk_stream_seek(DiskStream* stream, int pos);
-int disk_stream_read(DiskStream* stream, void* out, int total);
-void disk_stream_close(DiskStream* stream);
+DiskStream *disk_stream_open(int drive_number);
+int disk_stream_seek(DiskStream *stream, int pos);
+int disk_stream_read(DiskStream *stream, void *out, int total);
+void disk_stream_close(DiskStream *stream);
 
 #endif
