@@ -4,9 +4,12 @@
 #include "fs/fat/fat16.h"
 #include "memory/memory.h"
 #include "memory/heap/kheap.h"
+#include "fs/path.h"
+#include "string/string.h"
+#include "disk/disk.h"
 
 FileSystem *file_systems[ZHIOS_MAX_FILE_SYSTEMS];
-FileDescriptor *file_descriptors[ZHIOS_MAX_FILE_DESCRIPTORS];
+struct FileDescriptor *file_descriptors[ZHIOS_MAX_FILE_DESCRIPTORS];
 
 FileSystem **get_free_filesystem()
 {
@@ -44,7 +47,7 @@ void fs_init()
     fs_load_static();
 }
 
-FileDescriptor *get_file_descriptor(int id)
+struct FileDescriptor *get_file_descriptor(int id)
 {
     if (id > ZHIOS_MAX_FILE_DESCRIPTORS)
     {
@@ -54,14 +57,15 @@ FileDescriptor *get_file_descriptor(int id)
     return file_descriptors[index];
 }
 
-int new_file_descriptor(FileDescriptor *fd)
+int new_file_descriptor(struct FileDescriptor *fd)
 {
     int res = -EMEM;
     for (int i = 0; i < ZHIOS_MAX_FILE_DESCRIPTORS; i++)
     {
         if (file_descriptors[i] == 0)
         {
-            FileDescriptor *desc = kzalloc(sizeof(FileDescriptor));
+            struct FileDescriptor *desc = kzalloc(sizeof(struct FileDescriptor));
+            desc->id = i;
             file_descriptors[i] = desc;
             fd = desc;
             res = 0;
@@ -85,7 +89,71 @@ FileSystem *fs_resolve(struct disk *disk)
     return fs;
 }
 
-int fopen(const char* filename, FileMode mode)
+FileMode get_file_mode_from_string(const char *mode_str)
 {
-    return -EIO;
+    FileMode mode = FILE_MODE_INVALID;
+    if (strncmp(mode_str, "r", 1) == 0)
+    {
+        mode = FILE_MODE_READ;
+    }
+    else if (strncmp(mode_str, "w", 1) == 0)
+    {
+        mode = FILE_MODE_WRITE;
+    }
+    else if (strncmp(mode_str, "a", 1) == 0)
+    {
+        mode = FILE_MODE_APPEND;
+    }
+    return mode;
+}
+
+int fopen(const char *filename, const char *mode)
+{
+    int res = 0;
+    struct RootPath *path = parse_path(filename, NULL);
+    if (!path)
+    {
+        res = -EINARG;
+        goto out;
+    }
+    if (!path->root)
+    {
+        res = -EINARG;
+        goto out;
+    }
+    FileMode file_mode = get_file_mode_from_string(mode);
+    if (file_mode == FILE_MODE_INVALID)
+    {
+        res = -EINARG;
+        return res;
+    }
+    struct disk *disk = get_disk(path->drive_number);
+    if (!disk)
+    {
+        res = -EIO;
+        goto out;
+    }
+    if (!disk->fs)
+    {
+        res = -EIO;
+        goto out;
+    }
+    void *private_descriptor_data = disk->fs->fopen(disk, path->root, file_mode);
+    if (ISERR(private_descriptor_data))
+    {
+        res = ERROR_I(private_descriptor_data);
+        goto out;
+    }
+    struct FileDescriptor *fd = 0;
+    new_file_descriptor(fd);
+    if (res < 0)
+    {
+        goto out;
+    }
+    fd->private_data = private_descriptor_data;
+    fd->fs = disk->fs;
+    fd->disk = disk;
+    res = fd->id;
+out:
+    return res;
 }

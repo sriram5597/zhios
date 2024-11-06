@@ -6,6 +6,8 @@
 #include "disk/disk.h"
 #include "memory/heap/kheap.h"
 #include <stdint.h>
+#include "config.h"
+#include "terminal/terminal.h"
 
 #define ATTR_READ_ONLY 0x01
 #define ATTR_HIDDEN 0x02
@@ -92,7 +94,7 @@ struct Fat16Item
     union
     {
         struct Fat16Directory *directory;
-        struct Fat16Item *item;
+        struct Fat16DirectoryItem *item;
     };
     Fat16ItemType type;
 };
@@ -254,7 +256,87 @@ out:
     return res;
 }
 
+struct Fat16DirectoryItem* fat16_clone_directory_item(struct Fat16DirectoryItem* directory_item, int size) {
+    struct Fat16DirectoryItem* copy = 0;
+    if (size < sizeof(struct Fat16DirectoryItem)) {
+        return 0;
+    }
+    copy = kzalloc(size);
+    if (!copy) {
+        return 0;
+    }
+    memcpy(directory_item, copy, size);
+    return copy;
+}
+
+struct Fat16Item* new_fat16_item(struct Fat16DirectoryItem* directory_item) {
+    struct Fat16Item* fat_item = kzalloc(sizeof(struct Fat16Item));
+    if (!fat_item) {
+        return 0;
+    }
+    fat_item->type = FAT16_ITEM_TYPE_FILE;
+    fat_item->item = fat16_clone_directory_item(directory_item, sizeof(struct Fat16DirectoryItem));
+    return fat_item;
+}
+
+void get_fat16_filename(struct Fat16DirectoryItem *entry, char *filename)
+{
+    rstrip((const char *)(entry->filename), filename);
+    if (entry->extension[0] != 0x00 && entry->extension[0] != 0x20)
+    {
+        strcat(filename, ".", filename);
+        strcat(filename, (const char *)entry->extension, filename);
+        rstrip(filename, filename);
+    }
+}
+
+struct Fat16Item *find_item_in_directory(struct Fat16Directory *directory, struct Path *path)
+{
+    const char filename[ZHIOS_MAX_PATH];
+    struct Fat16Item* item = 0;
+    for (int i = 0; i < directory->total; i++)
+    {
+        memset((void *)filename, 0, ZHIOS_MAX_PATH);
+        get_fat16_filename(&directory->directory_item[i], (char *)filename);
+        int path_len = strlen(path->path_name);
+        int filename_len = strlen(filename);
+        if (filename_len != path_len)
+        {
+            continue;
+        }
+        if (istrncmp(filename, path->path_name, strlen(filename)) == 0)
+        {
+            print("file found...\n");
+            item = new_fat16_item(&directory->directory_item[i]);
+            break;
+        }
+    }
+    return item;
+}
+
+struct Fat16Item *get_fat16_directory_item(struct disk *disk, struct Path *path)
+{
+    struct Fat16Private *fat16_private = disk->fs_private;
+    struct Fat16Item* item = find_item_in_directory(&fat16_private->root_directory, path);
+    return item;
+}
+
 void *fat16_open(struct disk *disk, struct Path *path, FileMode mode)
 {
-    return 0;
+    if (mode != FILE_MODE_READ)
+    {
+        return 0;
+    }
+    struct Fat16Descriptor *descriptor = kzalloc(sizeof(struct Fat16Descriptor));
+    if (!descriptor)
+    {
+        return 0;
+    }
+    descriptor->item = get_fat16_directory_item(disk, path);
+    if (!descriptor->item)
+    {
+        return 0;
+    }
+    descriptor->pos = 0;
+    return descriptor;
 }
