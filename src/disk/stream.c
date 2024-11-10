@@ -17,7 +17,7 @@ DiskStream *disk_stream_open(int drive_number)
 
 int disk_stream_seek(DiskStream *stream, int pos)
 {
-    stream->pos += pos;
+    stream->pos = pos;
     return 0;
 }
 

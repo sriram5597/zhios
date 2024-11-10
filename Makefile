@@ -9,7 +9,10 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/kernel.bin bs=512 conv=sync >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	sudo mount -t vfat ./bin/os.bin /mnt/d
-	sudo cp ./test.txt /mnt/d
+	# sudo cp ./test.txt /mnt/d
+	sudo mkdir /mnt/d/root
+	sudo mkdir /mnt/d/root/files
+	sudo cp ./test.txt /mnt/d/root/files/test.txt
 	sudo umount /mnt/d
 
 ./bin/boot.bin: ./src/boot/boot.asm

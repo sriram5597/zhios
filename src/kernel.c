@@ -23,5 +23,5 @@ void kernel_main()
     kernel_page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
     enable_interrupts();
     print("Hello World!\n");
-    fopen("0:/test.txt", "r");
+    fopen("0:/root/files/test.txt", "r");
 }
