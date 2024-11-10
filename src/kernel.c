@@ -24,9 +24,10 @@ void kernel_main()
     enable_interrupts();
     print("Hello World!\n");
     int fd = fopen("0:/root/files/test.txt", "r");
-    char buffer[22];
-    int res = fread(fd, buffer, 20);
-    buffer[res] = 0x00;
+    fseek(fd, 10, SEEK_BEGIN);
+    char buffer[10];
+    fread(fd, buffer, 10);
+    buffer[10] = 0x00;
     print("Read from disk: ");
     print(buffer);
     print("\n");

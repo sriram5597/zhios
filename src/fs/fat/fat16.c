@@ -119,12 +119,14 @@ struct Fat16Private
 void *fat16_open(struct disk *disk, struct Path *path, FileMode mode);
 int fat16_resolve(struct disk *disk);
 int fat16_read(struct disk *disk, void *descriptor, int size, char *out);
+int fat16_seek(void *private, int pos);
 
 FileSystem fat16_fs = {
     .name = "FAT16",
     .fopen = fat16_open,
     .fresolve = fat16_resolve,
-    .fread = fat16_read};
+    .fread = fat16_read,
+    .fseek = fat16_seek};
 
 FileSystem *fat16_init()
 {
@@ -531,4 +533,20 @@ int fat16_read(struct disk *disk, void *fd, int size, char *out)
     struct Fat16Entry *entry = descriptor->item->item;
     res = load_entries_from_cluster(disk, get_first_cluster(entry), descriptor->pos, size, out);
     return res;
+}
+
+int fat16_seek(void *private, int pos)
+{
+    struct Fat16Descriptor *descriptor = private;
+    if (descriptor->item->type != FAT16_ITEM_TYPE_FILE)
+    {
+        return -EINARG;
+    }
+    struct Fat16Entry *entry = descriptor->item->item;
+    if (pos >= entry->file_size)
+    {
+        return -EIO;
+    }
+    descriptor->pos = pos;
+    return 0;
 }

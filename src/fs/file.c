@@ -171,3 +171,21 @@ int fread(int fd, void *buffer, int size)
 out:
     return res;
 }
+
+int fseek(int fd, int offset, FileSeekMode mode)
+{
+    int pos = 0;
+    switch (mode)
+    {
+    case SEEK_BEGIN:
+        pos = offset;
+        break;
+    case SEEK_CURRENT:
+        pos += offset;
+        break;
+    default:
+        return -EINARG;
+    }
+    struct FileDescriptor *descriptor = get_file_descriptor(fd);
+    return descriptor->fs->fseek(descriptor->private_data, pos);
+}
