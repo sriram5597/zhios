@@ -53,7 +53,7 @@ struct FileDescriptor *get_file_descriptor(int id)
     {
         return 0;
     }
-    int index = id - 1;
+    int index = id;
     return file_descriptors[index];
 }
 
@@ -154,6 +154,20 @@ int fopen(const char *filename, const char *mode)
     fd->fs = disk->fs;
     fd->disk = disk;
     res = fd->id;
+out:
+    return res;
+}
+
+int fread(int fd, void *buffer, int size)
+{
+    int res = 0;
+    if (size == 0 || fd < 0)
+    {
+        res = -EINARG;
+        goto out;
+    }
+    struct FileDescriptor *descriptor = get_file_descriptor(fd);
+    res = descriptor->fs->fread(descriptor->disk, descriptor->private_data, size, (char *)buffer);
 out:
     return res;
 }

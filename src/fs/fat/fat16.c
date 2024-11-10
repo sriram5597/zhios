@@ -118,11 +118,13 @@ struct Fat16Private
 
 void *fat16_open(struct disk *disk, struct Path *path, FileMode mode);
 int fat16_resolve(struct disk *disk);
+int fat16_read(struct disk *disk, void *descriptor, int size, char *out);
 
 FileSystem fat16_fs = {
     .name = "FAT16",
     .fopen = fat16_open,
-    .fresolve = fat16_resolve};
+    .fresolve = fat16_resolve,
+    .fread = fat16_read};
 
 FileSystem *fat16_init()
 {
@@ -390,7 +392,7 @@ int read_entries(struct disk *disk, struct DiskStream *stream, int cluster, int 
     size -= total_to_read;
     if (size > 0)
     {
-        res = read_entries(disk, stream, cluster, offset + total_to_read, size, out + total_to_read);
+        res += read_entries(disk, stream, cluster, offset + total_to_read, size, out + total_to_read);
     }
 out:
     return res;
@@ -520,4 +522,13 @@ void *fat16_open(struct disk *disk, struct Path *path, FileMode mode)
     print("\n");
     descriptor->pos = 0;
     return descriptor;
+}
+
+int fat16_read(struct disk *disk, void *fd, int size, char *out)
+{
+    int res = 0;
+    struct Fat16Descriptor *descriptor = fd;
+    struct Fat16Entry *entry = descriptor->item->item;
+    res = load_entries_from_cluster(disk, get_first_cluster(entry), descriptor->pos, size, out);
+    return res;
 }

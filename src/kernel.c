@@ -23,5 +23,11 @@ void kernel_main()
     kernel_page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
     enable_interrupts();
     print("Hello World!\n");
-    fopen("0:/root/files/test.txt", "r");
+    int fd = fopen("0:/root/files/test.txt", "r");
+    char buffer[22];
+    int res = fread(fd, buffer, 20);
+    buffer[res] = 0x00;
+    print("Read from disk: ");
+    print(buffer);
+    print("\n");
 }
