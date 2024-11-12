@@ -25,10 +25,18 @@ void kernel_main()
     print("Hello World!\n");
     int fd = fopen("0:/root/files/test.txt", "r");
     fseek(fd, 10, SEEK_BEGIN);
-    char buffer[10];
+    char buffer[11];
     fread(fd, buffer, 10);
     buffer[10] = 0x00;
     print("Read from disk: ");
     print(buffer);
+    print("\n");
+    struct FileStat stat;
+    fstat(fd, &stat);
+    print("stat: ");
+    print(stat.filename);
+    print("\n");
+    fclose(fd);
+    print("file closed..");
     print("\n");
 }

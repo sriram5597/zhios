@@ -53,26 +53,30 @@ struct FileDescriptor *get_file_descriptor(int id)
     {
         return 0;
     }
-    int index = id;
+    int index = id - 1;
     return file_descriptors[index];
 }
 
-int new_file_descriptor(struct FileDescriptor *fd)
+struct FileDescriptor *new_file_descriptor()
 {
     int res = -EMEM;
+    struct FileDescriptor *desc = kzalloc(sizeof(struct FileDescriptor));
     for (int i = 0; i < ZHIOS_MAX_FILE_DESCRIPTORS; i++)
     {
         if (file_descriptors[i] == 0)
         {
-            struct FileDescriptor *desc = kzalloc(sizeof(struct FileDescriptor));
-            desc->id = i;
+            desc->id = i + 1;
             file_descriptors[i] = desc;
-            fd = desc;
             res = 0;
             break;
         }
     }
-    return res;
+    if (res < 0)
+    {
+        kfree(desc);
+        return 0;
+    }
+    return desc;
 }
 
 FileSystem *fs_resolve(struct disk *disk)
@@ -105,6 +109,12 @@ FileMode get_file_mode_from_string(const char *mode_str)
         mode = FILE_MODE_APPEND;
     }
     return mode;
+}
+
+void free_file_descriptor(struct FileDescriptor *desc)
+{
+    file_descriptors[desc->id - 1] = 0x00;
+    kfree(desc);
 }
 
 int fopen(const char *filename, const char *mode)
@@ -144,9 +154,8 @@ int fopen(const char *filename, const char *mode)
         res = ERROR_I(private_descriptor_data);
         goto out;
     }
-    struct FileDescriptor *fd = 0;
-    new_file_descriptor(fd);
-    if (res < 0)
+    struct FileDescriptor *fd = new_file_descriptor();
+    if (!fd)
     {
         goto out;
     }
@@ -188,4 +197,21 @@ int fseek(int fd, int offset, FileSeekMode mode)
     }
     struct FileDescriptor *descriptor = get_file_descriptor(fd);
     return descriptor->fs->fseek(descriptor->private_data, pos);
+}
+
+int fstat(int fd, struct FileStat *stat)
+{
+    struct FileDescriptor *desc = get_file_descriptor(fd);
+    if (!desc)
+    {
+        return -EIO;
+    }
+    return desc->fs->fstat(desc->private_data, stat);
+}
+
+void fclose(int fd)
+{
+    struct FileDescriptor *desc = get_file_descriptor(fd);
+    desc->fs->fclose(desc->private_data);
+    free_file_descriptor(desc);
 }

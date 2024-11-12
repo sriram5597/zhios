@@ -120,13 +120,17 @@ void *fat16_open(struct disk *disk, struct Path *path, FileMode mode);
 int fat16_resolve(struct disk *disk);
 int fat16_read(struct disk *disk, void *descriptor, int size, char *out);
 int fat16_seek(void *private, int pos);
+int fat16_stat(void *private, struct FileStat *stat);
+void fat16_close(void *private);
 
 FileSystem fat16_fs = {
     .name = "FAT16",
     .fopen = fat16_open,
     .fresolve = fat16_resolve,
     .fread = fat16_read,
-    .fseek = fat16_seek};
+    .fseek = fat16_seek,
+    .fstat = fat16_stat,
+    .fclose = fat16_close};
 
 FileSystem *fat16_init()
 {
@@ -549,4 +553,33 @@ int fat16_seek(void *private, int pos)
     }
     descriptor->pos = pos;
     return 0;
+}
+
+int fat16_stat(void *private, struct FileStat *stat)
+{
+    struct Fat16Descriptor *desc = private;
+    struct Fat16Entry *entry = desc->item->item;
+    get_fat16_filename(entry, stat->filename);
+    stat->size = entry->file_size;
+    stat->attr = 0x0;
+    if (entry->attribute & ATTR_READ_ONLY)
+    {
+        stat->attr |= READ_ONLY;
+    }
+    return 0;
+}
+
+void fat16_close(void *private)
+{
+    struct Fat16Descriptor *desc = private;
+    struct Fat16Item *entry = desc->item;
+    if (entry->type == FAT16_ITEM_TYPE_DIRECTORY)
+    {
+        kfree(entry->directory);
+    }
+    else
+    {
+        kfree(entry->item);
+    }
+    kfree(entry);
 }
