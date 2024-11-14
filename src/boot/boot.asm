@@ -87,7 +87,7 @@ load32:
     mov ecx, 100
     mov edi, 0x0100000
     call lba_read
-    jmp CODE_SEG: 0x0100000
+    jmp CODE_SEG:0x0100000
 
 lba_read:
 
