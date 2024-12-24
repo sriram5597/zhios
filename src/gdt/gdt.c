@@ -1,9 +1,11 @@
 #include "gdt.h"
 #include "config.h"
 #include "memory/memory.h"
+#include "task/tss.h"
 
 struct GdtEntry gdt_table[ZHIOS_TOTAL_GDT_SEGMENTS];
 struct GdtEntity gdt_entities[ZHIOS_TOTAL_GDT_SEGMENTS];
+struct TSS tss;
 
 extern void load_gdt(struct GdtEntry *entry, int size);
 
@@ -42,5 +44,23 @@ void init_gdt()
         .base = 0x00,
         .limit = 0xFFFFFFFF,
         .type = 0x92};
+    gdt_entities[3] = (struct GdtEntity){
+        .base = 0x00,
+        .limit = 0xFFFFFFFF,
+        .type = 0xF8};
+    gdt_entities[4] = (struct GdtEntity){
+        .base = 0x00,
+        .limit = 0xFFFFFFFF,
+        .type = 0xF2};
+    gdt_entities[5] = (struct GdtEntity){
+        .base = (uint32_t)&tss,
+        .limit = sizeof(tss),
+        .type = 0xE9};
     load_entries();
+
+    memset(&tss, 0x00, sizeof(tss));
+    tss.esp0 = 0x600000;
+    tss.ss0 = KERNEL_DATA_SELECTOR;
+
+    load_tss(0x28);
 }
