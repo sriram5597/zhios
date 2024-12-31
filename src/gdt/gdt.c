@@ -1,7 +1,7 @@
 #include "gdt.h"
 #include "config.h"
 #include "memory/memory.h"
-#include "task/tss.h"
+#include "task/task.h"
 
 struct GdtEntry gdt_table[ZHIOS_TOTAL_GDT_SEGMENTS];
 struct GdtEntity gdt_entities[ZHIOS_TOTAL_GDT_SEGMENTS];
@@ -47,7 +47,7 @@ void init_gdt()
     gdt_entities[3] = (struct GdtEntity){
         .base = 0x00,
         .limit = 0xFFFFFFFF,
-        .type = 0xF8};
+        .type = 0xFA};
     gdt_entities[4] = (struct GdtEntity){
         .base = 0x00,
         .limit = 0xFFFFFFFF,
@@ -55,7 +55,7 @@ void init_gdt()
     gdt_entities[5] = (struct GdtEntity){
         .base = (uint32_t)&tss,
         .limit = sizeof(tss),
-        .type = 0xE9};
+        .type = 0x89};
     load_entries();
 
     memset(&tss, 0x00, sizeof(tss));
