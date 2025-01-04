@@ -8,13 +8,13 @@ struct Task *current_task = 0;
 struct Task *head_task = 0;
 struct Task *tail_task = 0;
 
-static int init_task(struct Task *);
+static int init_task(struct Task *, struct Process *);
 
-struct Task *create_task()
+struct Task *create_task(struct Process *process)
 {
     int res = 0;
     struct Task *task = kzalloc(sizeof(struct Task));
-    init_task(task);
+    init_task(task, process);
     if (task == 0)
     {
         res = -EIO;
@@ -33,6 +33,7 @@ out:
     if (res < 0)
     {
         free_task(task);
+        return 0;
     }
     return task;
 }
@@ -71,7 +72,7 @@ struct Task *get_current_task()
     return current_task;
 }
 
-static int init_task(struct Task *task)
+static int init_task(struct Task *task, struct Process *process)
 {
     memset(task, 0, sizeof(struct Task));
     task->page_directory = paging_new_chunk(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
@@ -79,6 +80,7 @@ static int init_task(struct Task *task)
     {
         return -EIO;
     }
+    task->process = process;
     task->registers.ip = ZHIOS_PROGRAM_VIRTUAL_ADDRESS;
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.esp = ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;

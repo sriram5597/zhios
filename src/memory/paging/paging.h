@@ -25,7 +25,9 @@ paging_chunk *paging_new_chunk(uint8_t flags);
 uint32_t *paging_get_directory(paging_chunk *chunk);
 void enable_paging();
 void paging_switch(uint32_t *directory);
-int map_page(uint32_t *directory, void *virtual_address, uint32_t phy_address);
+int map_page(uint32_t *directory, void *virtual_address, void *phy_address, int flags);
+int map_page_range(uint32_t *directory, void *virtual_address, void *phy_address, int count, int flags);
+void *align_to_paging_address(void *ptr);
 paging_chunk *init_paging(uint8_t flags);
 void free_page(struct paging_4gb_chunk *page);
 

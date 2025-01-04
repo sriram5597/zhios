@@ -49,7 +49,7 @@ void paging_get_index(void *virtual_address, uint32_t *directory_index, uint32_t
     *table_index = (uint32_t)virtual_address % (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE) / PAGING_PAGE_SIZE;
 }
 
-int map_page(uint32_t *directory, void *virtual_address, uint32_t phy_address)
+int set_page(uint32_t *directory, void *virtual_address, uint32_t phy_address)
 {
     int res = 0;
     if (!(is_page_aligned(virtual_address)))
@@ -64,6 +64,31 @@ int map_page(uint32_t *directory, void *virtual_address, uint32_t phy_address)
     uint32_t *table = (uint32_t *)(entry & 0xfffff000);
     table[table_index] = phy_address;
 out:
+    return res;
+}
+
+int map_page(uint32_t *directory, void *virtual_address, void *physical_address, int flags)
+{
+    if ((uint32_t)virtual_address % PAGING_PAGE_SIZE || (uint32_t)physical_address % PAGING_PAGE_SIZE)
+    {
+        return -EINARG;
+    }
+    return set_page(directory, virtual_address, (uint32_t)physical_address | flags);
+}
+
+int map_page_range(uint32_t *directory, void *virtual_address, void *physical_address, int count, int flags)
+{
+    int res = 0;
+    for (int i = 0; i < count; i++)
+    {
+        res = map_page(directory, virtual_address, physical_address, flags);
+        if (res < 0)
+        {
+            break;
+        }
+        virtual_address += PAGING_PAGE_SIZE;
+        physical_address += PAGING_PAGE_SIZE;
+    }
     return res;
 }
 
@@ -85,4 +110,10 @@ void free_page(struct paging_4gb_chunk *page)
     }
     kfree(page->directory_entry);
     kfree(page);
+}
+
+void *align_to_paging_address(void *ptr)
+{
+    uint32_t address = (uint32_t)ptr + (PAGING_PAGE_SIZE - (uint32_t)ptr % PAGING_PAGE_SIZE);
+    return (void *)address;
 }

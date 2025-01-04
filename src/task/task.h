@@ -51,16 +51,19 @@ struct Registers
     uint32_t ss;
 };
 
+struct Process;
+
 struct Task
 {
     struct paging_4gb_chunk *page_directory;
     struct Registers registers;
     struct Task *next;
     struct Task *prev;
+    struct Process *process;
 };
 
 void load_tss(int tss_segment);
-struct Task *new_task();
+struct Task *create_task(struct Process *process);
 struct Task *get_current_task();
 struct Task *get_next_task();
 int free_task(struct Task *task);
