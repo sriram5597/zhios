@@ -46,10 +46,10 @@ struct Registers
 
     uint32_t ip;
     uint32_t cs;
-    uint32_t esp;
     uint32_t flags;
+    uint32_t esp;
     uint32_t ss;
-};
+} __attribute__((packed));
 
 struct Process;
 
@@ -67,5 +67,10 @@ struct Task *create_task(struct Process *process);
 struct Task *get_current_task();
 struct Task *get_next_task();
 int free_task(struct Task *task);
+void user_registers();
+void restore_task(struct Registers *registers);
+int task_page();
+int switch_task(struct Task *task);
+void run_first_task();
 
 #endif

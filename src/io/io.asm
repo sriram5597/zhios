@@ -1,4 +1,5 @@
-section .asm
+[BITS 32]
+section .text
 
 global insb
 global insw

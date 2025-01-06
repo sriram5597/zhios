@@ -1,5 +1,5 @@
 [BITS 32]
-section .asm
+section .text
 
 global page_load_directory
 global enable_paging

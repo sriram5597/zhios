@@ -1,4 +1,4 @@
-section .asm
+section .text
 global load_gdt
 
 load_gdt:
@@ -12,4 +12,4 @@ load_gdt:
 section .data
 gdt_descriptor:
     dw 0x00 ; size
-    dw 0x00 ; GDT start address
+    dd 0x00 ; GDT start address

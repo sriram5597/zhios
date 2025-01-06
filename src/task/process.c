@@ -7,8 +7,8 @@
 #include "fs/file.h"
 #include "string/string.h"
 
-struct Process *current_process = 0;
-struct Process *process_list[ZHIOS_MAX_PROCESS] = {};
+static struct Process *current_process = 0;
+static struct Process *process_list[ZHIOS_MAX_PROCESS] = {0};
 
 static void init_process(struct Process *process)
 {
@@ -64,7 +64,7 @@ int process_map_binary(struct Process *process)
 {
     int res = 0;
     int flags = PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL;
-    int page_count = align_to_paging_address(process->ptr + process->size) - process->ptr;
+    int page_count = (align_to_paging_address(process->ptr + process->size) - process->ptr) / PAGING_PAGE_SIZE;
     res = map_page_range(process->task->page_directory->directory_entry, (void *)ZHIOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, page_count, flags);
     return res;
 }
@@ -119,10 +119,11 @@ int load_process(const char *filename, struct Process **process)
         res = -EMEM;
         goto out;
     }
-    strcpy(filename, _process->filename);
+    strcpy(filename, (char *)_process->filename);
     _process->stack = stack_ptr;
     _process->id = process_id;
     _process->task = create_task(_process);
+    process_map_memory(_process);
     process_list[process_id] = _process;
     *process = _process;
 out:

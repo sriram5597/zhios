@@ -1,9 +1,9 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/task.o ./build/task/process.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o
 
 INCLUDES = -I ./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
-all: ./bin/boot.bin ./bin/kernel.bin
+all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin bs=512 conv=sync >> ./bin/os.bin
@@ -12,7 +12,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	# sudo cp ./test.txt /mnt/d
 	sudo mkdir /mnt/d/root
 	sudo mkdir /mnt/d/root/files
+	sudo mkdir /mnt/d/bin
 	sudo cp ./test.txt /mnt/d/root/files/test.txt
+	sudo cp ./programs/bin/blank.bin /mnt/d/bin/blank.bin
 	sudo umount /mnt/d
 
 ./bin/boot.bin: ./src/boot/boot.asm
@@ -80,8 +82,11 @@ all: ./bin/boot.bin ./bin/kernel.bin
 ./build/gdt/gdt.asm.o: ./src/gdt/gdt.asm
 	nasm -f elf -g -o ./build/gdt/gdt.asm.o ./src/gdt/gdt.asm
 
+./build/task/tss.asm.o: ./src/task/tss.asm
+	nasm -f elf -gdwarf -o ./build/task/tss.asm.o ./src/task/tss.asm
+
 ./build/task/task.asm.o: ./src/task/task.asm
-	nasm -f elf -g -o ./build/task/task.asm.o ./src/task/task.asm
+	nasm -f elf32 -gdwarf -o ./build/task/task.asm.o ./src/task/task.asm
 	
 ./build/gdt/gdt.o: ./src/gdt/gdt.c
 	i686-elf-gcc ${INCLUDES} -I./src/gdt ${FLAGS} -std=gnu99 -c ./src/gdt/gdt.c -o ./build/gdt/gdt.o
@@ -93,7 +98,13 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	i686-elf-gcc ${INCLUDES} -I./src/task ${FLAGS} -std=gnu99 -c ./src/task/process.c -o ./build/task/process.o
 
 
-clean:
+user_programs:
+	cd ./programs && ${MAKE} all
+
+user_programs_clean:
+	cd ./programs && ${MAKE} clean
+
+clean: user_programs_clean
 	rm -rf ./bin/*.bin
 	rm -rf ./build/*.o
 	rm -rf ./build/*/**.o

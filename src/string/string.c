@@ -28,13 +28,23 @@ char itoa(int num)
 
 void strcpy(const char *src, char *dest)
 {
-    while (src != 0)
+    while (*src != 0)
     {
         *dest = *src;
         src++;
         dest++;
     }
     *dest = 0x00;
+}
+
+void strncpy(const char *src, char *dest, int n)
+{
+    int i = 0;
+    for (; i < n; i++)
+    {
+        dest[i] = src[i];
+    }
+    dest[i] = '\0';
 }
 
 char to_lower_char(char ch)

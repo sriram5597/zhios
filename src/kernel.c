@@ -10,6 +10,8 @@
 #include "fs/path.h"
 #include "fs/file.h"
 #include "disk/stream.h"
+#include "task/process.h"
+#include "task/task.h"
 #include "gdt/gdt.h"
 
 static paging_chunk *kernel_page = 0;
@@ -23,6 +25,20 @@ void kernel_main()
     disk_search_and_init();
     init_interrupts();
     kernel_page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
-    enable_interrupts();
-    print("Hello World!\n");
+    // enable_interrupts();
+
+    struct Process *process = 0;
+    int res = load_process("0:/bin/blank.bin", &process);
+    if (res != 0)
+    {
+        print("Failed to load process..");
+    }
+    else
+    {
+        run_first_task();
+        print("Hello World!\n");
+    }
+    while (1)
+    {
+    }
 }

@@ -12,5 +12,6 @@ int strncmp(const char *s1, const char *s2, int n);
 void rstrip(const char *s1, char *s2);
 void strcat(const char *s1, const char *s2, char *dest);
 int istrncmp(const char *s1, const char *s2, int n);
+void strncpy(const char *src, char *dest, int n);
 
 #endif

@@ -1,4 +1,4 @@
-section .asm
+section .text
 
 global load_interrupts
 global int21h
