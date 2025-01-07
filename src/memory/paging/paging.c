@@ -8,7 +8,7 @@ void page_load_directory(uint32_t *directory);
 
 static uint32_t *current_directory;
 
-paging_chunk *paging_new_chunk(uint8_t flags)
+struct Page *paging_new_chunk(uint8_t flags)
 {
     uint32_t *directory = kzalloc(sizeof(uint32_t) * PAGING_TOTAL_ENTRIES_PER_TABLE);
     int offset = 0;
@@ -22,20 +22,20 @@ paging_chunk *paging_new_chunk(uint8_t flags)
         offset += (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE);
         directory[i] = (uint32_t)entry | flags | PAGING_IS_WRITABLE;
     }
-    paging_chunk *page_chunk = kzalloc(sizeof(paging_chunk));
+    struct Page *page_chunk = kzalloc(sizeof(struct Page));
     page_chunk->directory_entry = directory;
     return page_chunk;
 }
 
-uint32_t *paging_get_directory(paging_chunk *chunk)
+uint32_t *paging_get_directory(struct Page *chunk)
 {
     return chunk->directory_entry;
 }
 
-void paging_switch(uint32_t *directory)
+void paging_switch(struct Page *page)
 {
-    page_load_directory(directory);
-    current_directory = directory;
+    page_load_directory(page->directory_entry);
+    current_directory = page->directory_entry;
 }
 
 bool is_page_aligned(void *directory)
@@ -67,21 +67,21 @@ out:
     return res;
 }
 
-int map_page(uint32_t *directory, void *virtual_address, void *physical_address, int flags)
+int map_page(struct Page *page, void *virtual_address, void *physical_address, int flags)
 {
     if ((uint32_t)virtual_address % PAGING_PAGE_SIZE || (uint32_t)physical_address % PAGING_PAGE_SIZE)
     {
         return -EINARG;
     }
-    return set_page(directory, virtual_address, (uint32_t)physical_address | flags);
+    return set_page(page->directory_entry, virtual_address, (uint32_t)physical_address | flags);
 }
 
-int map_page_range(uint32_t *directory, void *virtual_address, void *physical_address, int count, int flags)
+int map_page_range(struct Page *page, void *virtual_address, void *physical_address, int count, int flags)
 {
     int res = 0;
     for (int i = 0; i < count; i++)
     {
-        res = map_page(directory, virtual_address, physical_address, flags);
+        res = map_page(page, virtual_address, physical_address, flags);
         if (res < 0)
         {
             break;
@@ -92,15 +92,15 @@ int map_page_range(uint32_t *directory, void *virtual_address, void *physical_ad
     return res;
 }
 
-paging_chunk *init_paging(uint8_t flags)
+struct Page *init_paging(uint8_t flags)
 {
-    paging_chunk *new_page = paging_new_chunk(flags);
-    paging_switch(paging_get_directory(new_page));
+    struct Page *new_page = paging_new_chunk(flags);
+    paging_switch(new_page);
     enable_paging();
     return new_page;
 }
 
-void free_page(struct paging_4gb_chunk *page)
+void free_page(struct Page *page)
 {
     for (int i = 0; i < PAGING_TOTAL_ENTRIES_PER_TABLE; i++)
     {

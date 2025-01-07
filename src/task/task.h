@@ -55,7 +55,7 @@ struct Process;
 
 struct Task
 {
-    struct paging_4gb_chunk *page_directory;
+    struct Page *page_directory;
     struct Registers registers;
     struct Task *next;
     struct Task *prev;

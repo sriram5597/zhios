@@ -65,7 +65,7 @@ int process_map_binary(struct Process *process)
     int res = 0;
     int flags = PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL;
     int page_count = (align_to_paging_address(process->ptr + process->size) - process->ptr) / PAGING_PAGE_SIZE;
-    res = map_page_range(process->task->page_directory->directory_entry, (void *)ZHIOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, page_count, flags);
+    res = map_page_range(process->task->page_directory, (void *)ZHIOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, page_count, flags);
     return res;
 }
 

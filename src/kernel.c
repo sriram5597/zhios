@@ -14,7 +14,7 @@
 #include "task/task.h"
 #include "gdt/gdt.h"
 
-static paging_chunk *kernel_page = 0;
+static struct Page *kernel_page = 0;
 
 void kernel_main()
 {
