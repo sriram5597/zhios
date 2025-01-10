@@ -1,5 +1,7 @@
 [BITS 32]
 global _start
+global kernel_registers
+
 extern kernel_main
 
 CODE_SEG equ 0x08
@@ -32,5 +34,13 @@ _start:
 
     call kernel_main
     jmp $
+
+kernel_registers:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    ret
 
 times 512 - ($ - $$) db 0

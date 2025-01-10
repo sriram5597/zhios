@@ -28,5 +28,7 @@ int map_page_range(struct Page *page, void *virtual_address, void *phy_address, 
 void *align_to_paging_address(void *ptr);
 struct Page *init_paging(uint8_t flags);
 void free_page(struct Page *page);
+uint32_t get_page(uint32_t *directory, void *virtual_address);
+int set_page(uint32_t *directory, void *virtual_address, uint32_t phy_address);
 
 #endif

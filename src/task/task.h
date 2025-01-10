@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "memory/paging/paging.h"
+#include "interrupts/interrupts.h"
 
 struct TSS
 {
@@ -69,8 +70,12 @@ struct Task *get_next_task();
 int free_task(struct Task *task);
 void user_registers();
 void restore_task(struct Registers *registers);
-int task_page();
+int current_task_page();
 int switch_task(struct Task *task);
 void run_first_task();
+void task_save_current_state(struct InterruptFrame *);
+int copy_string_from_task(struct Task *task, void *virtual, void *phy_address, int max);
+void *task_get_stack_item(struct Task *task, int index);
+int switch_to_task_page(struct Task *task);
 
 #endif

@@ -5,7 +5,11 @@ section .text
 global _start
 
 _start:
+    push message
+    mov eax, 1
+    int 0x80
+    add esp, 4
+    jmp $
 
-label:
-    mov ecx, 5597
-    jmp label
+.data
+    message: db 'Loaded user program', 0

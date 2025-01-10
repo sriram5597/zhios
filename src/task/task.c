@@ -1,9 +1,13 @@
 #include "task.h"
 #include "status.h"
 #include "config.h"
+#include "kernel.h"
+#include "string/string.h"
 #include "memory/heap/kheap.h"
 #include "terminal/terminal.h"
 #include "memory/memory.h"
+#include "memory/paging/paging.h"
+#include "interrupts/interrupts.h"
 
 static struct Task *current_task = 0;
 static struct Task *head_task = 0;
@@ -49,10 +53,17 @@ int switch_task(struct Task *task)
     return 0;
 }
 
-int task_page()
+int current_task_page()
 {
     user_registers();
     switch_task(current_task);
+    return 0;
+}
+
+int switch_to_task_page(struct Task *task)
+{
+    user_registers();
+    paging_switch(task->page_directory);
     return 0;
 }
 
@@ -122,4 +133,74 @@ int free_task(struct Task *task)
     free_page(task->page_directory);
     remove_from_task_list(task);
     return 0;
+}
+
+void save_state(struct Task *task, struct InterruptFrame *frame)
+{
+    task->registers.edi = frame->edi;
+    task->registers.esi = frame->esi;
+    task->registers.ebx = frame->ebx;
+    task->registers.edx = frame->edx;
+    task->registers.ecx = frame->ecx;
+    task->registers.eax = frame->eax;
+    task->registers.ebp = frame->ebp;
+    task->registers.esp = frame->esp;
+    task->registers.cs = frame->cs;
+    task->registers.ip = frame->ip;
+    task->registers.ss = frame->ss;
+    task->registers.flags = frame->flags;
+}
+
+int copy_string_from_task(struct Task *task, void *virtual, void *phy_address, int max)
+{
+    if (max >= PAGING_PAGE_SIZE)
+    {
+        return -EINARG;
+    }
+    int res = 0;
+    char *tmp = kzalloc(max);
+    if (!tmp)
+    {
+        return -EMEM;
+    }
+    uint32_t old_entry = get_page(task->page_directory->directory_entry, tmp);
+    map_page(task->page_directory, tmp, tmp, PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    paging_switch(task->page_directory);
+    strncpy(virtual, tmp, max);
+    kernel_page();
+    res = set_page(task->page_directory->directory_entry, tmp, old_entry);
+    if (res < 0)
+    {
+        goto out;
+    }
+    strncpy(tmp, phy_address, max);
+out:
+    if (tmp)
+    {
+        kfree(tmp);
+    }
+    return res;
+}
+
+void task_save_current_state(struct InterruptFrame *frame)
+{
+    if (!get_current_task())
+    {
+        print("No active tasks..");
+        while (1)
+        {
+        }
+    }
+    struct Task *task = get_current_task();
+    save_state(task, frame);
+}
+
+void *task_get_stack_item(struct Task *task, int index)
+{
+    void *result = 0;
+    uint32_t *st_ptr = (uint32_t *)task->registers.esp;
+    switch_to_task_page(task);
+    result = (void *)st_ptr[index];
+    kernel_page();
+    return result;
 }

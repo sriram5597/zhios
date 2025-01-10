@@ -13,8 +13,17 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "gdt/gdt.h"
+#include "isr80h/isr80h.h"
 
-static struct Page *kernel_page = 0;
+struct Page *page = 0;
+
+extern void kernel_registers();
+
+void kernel_page()
+{
+    kernel_registers();
+    paging_switch(page);
+}
 
 void kernel_main()
 {
@@ -24,8 +33,9 @@ void kernel_main()
     fs_init();
     disk_search_and_init();
     init_interrupts();
-    kernel_page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
+    page = init_paging(PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
     // enable_interrupts();
+    register_system_commands();
 
     struct Process *process = 0;
     int res = load_process("0:/bin/blank.bin", &process);

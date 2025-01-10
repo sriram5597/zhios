@@ -73,6 +73,13 @@ int process_map_memory(struct Process *process)
 {
     int res = 0;
     res = process_map_binary(process);
+    if (res < 0)
+    {
+        return res;
+    }
+    int page_count = (align_to_paging_address(process->stack + ZHIOS_PROGRAM_STACK_SIZE) - process->stack) / PAGING_PAGE_SIZE;
+    int page_flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITABLE;
+    res = map_page_range(process->task->page_directory, (void *)ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, page_count, page_flags);
     return res;
 }
 

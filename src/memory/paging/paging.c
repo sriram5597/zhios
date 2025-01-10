@@ -49,6 +49,16 @@ void paging_get_index(void *virtual_address, uint32_t *directory_index, uint32_t
     *table_index = (uint32_t)virtual_address % (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE) / PAGING_PAGE_SIZE;
 }
 
+uint32_t get_page(uint32_t *directory, void *virtual_address)
+{
+    uint32_t directory_index = 0;
+    uint32_t table_index = 0;
+    paging_get_index(virtual_address, &directory_index, &table_index);
+    uint32_t entry = directory[directory_index];
+    uint32_t *table = (uint32_t *)(entry & 0xfffff000);
+    return table[table_index];
+}
+
 int set_page(uint32_t *directory, void *virtual_address, uint32_t phy_address)
 {
     int res = 0;
