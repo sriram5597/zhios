@@ -1,6 +1,7 @@
 #include "interrupts.h"
 #include <stdint.h>
 
+#include "status.h"
 #include "config.h"
 #include "kernel.h"
 #include "task/task.h"
@@ -11,6 +12,9 @@
 struct interrupt_table interrupt_table;
 struct interrupt_entry interrupt_entries[512];
 static ISR80H_COMMAND isr80h_commands[ZHIOS_MAX_ISR80H_COMMANDS];
+static ISR_HANDLER_FUNCTION service_routines[TOTAL_INTERRUPTS];
+
+extern void *isr_pointer_table[TOTAL_INTERRUPTS];
 
 extern void load_interrupts(struct interrupt_table *table);
 extern void no_interrupt();
@@ -56,14 +60,20 @@ void divide_by_zero()
     print("Divide by zero error!\n");
 }
 
-void int21h_handler()
+void no_interrupt_handler()
 {
-    print("Keybord key pressed!\n");
     outb(0x20, 0x20);
 }
 
-void no_interrupt_handler()
+void isr_handler(int interrupt, struct InterruptFrame *frame)
 {
+    kernel_page();
+    if (service_routines[interrupt] != 0)
+    {
+        task_save_current_state(frame);
+        service_routines[interrupt](frame);
+    }
+    current_task_page();
     outb(0x20, 0x20);
 }
 
@@ -75,6 +85,16 @@ void *isr80h_handler(int command, struct InterruptFrame *frame)
     res = isr80h_handle_command(command, frame);
     current_task_page();
     return res;
+}
+
+int register_service_routine(int interrupt, ISR_HANDLER_FUNCTION handler)
+{
+    if (interrupt < 0 || interrupt > TOTAL_INTERRUPTS)
+    {
+        return -EINARG;
+    }
+    service_routines[interrupt] = handler;
+    return 0;
 }
 
 void set_interrupt(int interrupt_num, void *address)
@@ -95,11 +115,10 @@ void init_interrupts()
 
     for (int i = 0; i < TOTAL_INTERRUPTS; i++)
     {
-        set_interrupt(i, no_interrupt);
+        set_interrupt(i, isr_pointer_table[i]);
     }
 
     set_interrupt(0, int0h);
-    set_interrupt(0x21, int21h);
     set_interrupt(0x80, isr80h);
 
     load_interrupts(&interrupt_table);

@@ -36,9 +36,11 @@ struct interrupt_table
 } __attribute__((packed));
 
 typedef void *(*ISR80H_COMMAND)(struct InterruptFrame *frame);
+typedef void (*ISR_HANDLER_FUNCTION)(struct InterruptFrame *frame);
 
 void init_interrupts();
 void enable_interrupts();
 void isr80h_register_command(int command, ISR80H_COMMAND handler);
+int register_service_routine(int interrupt, ISR_HANDLER_FUNCTION handler);
 
 #endif

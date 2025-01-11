@@ -6,5 +6,6 @@
 
 void print(const char *);
 void init_terminal();
+void terminal_writechar(char c);
 
 #endif

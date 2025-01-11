@@ -5,11 +5,24 @@ section .text
 global _start
 
 _start:
-    push message
-    mov eax, 1
+    
+_loop:
+    call getKey
+    cmp eax, 0x1B
+    je out
+    push eax
+    mov eax, 2
     int 0x80
     add esp, 4
-    jmp $
+    jmp _loop
+    ret
 
-.data
-    message: db 'Loaded user program', 0
+getKey:
+    mov eax, 3
+    int 0x80
+    cmp eax, 0x00
+    je getKey
+    ret
+
+out:
+    jmp $

@@ -137,6 +137,22 @@ out:
     return res;
 }
 
+void process_switch(struct Process *process)
+{
+    current_process = process;
+}
+
+int process_load_and_switch(const char *filename, struct Process **process)
+{
+    int res = load_process(filename, process);
+    if (res < 0)
+    {
+        return res;
+    }
+    process_switch(*process);
+    return res;
+}
+
 void free_process(int process_id)
 {
     struct Process *process = get_process(process_id);
