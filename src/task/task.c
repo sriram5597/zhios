@@ -1,7 +1,11 @@
 #include "task.h"
+#include "process.h"
 #include "status.h"
 #include "config.h"
 #include "kernel.h"
+#include "loaders/loader.h"
+#include "loaders/formats/elf.h"
+#include "loaders/formats/elfloader.h"
 #include "string/string.h"
 #include "memory/heap/kheap.h"
 #include "terminal/terminal.h"
@@ -122,6 +126,10 @@ static int init_task(struct Task *task, struct Process *process)
     }
     task->process = process;
     task->registers.ip = ZHIOS_PROGRAM_VIRTUAL_ADDRESS;
+    if (process->file_type == PROCESS_FILETYPE_ELF)
+    {
+        task->registers.ip = elf_get_header(process->elf_file)->e_entry;
+    }
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.cs = USER_CODE_SEGMENT;
     task->registers.esp = ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;

@@ -86,8 +86,9 @@ int map_page(struct Page *page, void *virtual_address, void *physical_address, i
     return set_page(page->directory_entry, virtual_address, (uint32_t)physical_address | flags);
 }
 
-int map_page_range(struct Page *page, void *virtual_address, void *physical_address, int count, int flags)
+int map_page_range(struct Page *page, void *virtual_address, void *physical_address, int size, int flags)
 {
+    int count = (align_to_paging_address(physical_address + size) - physical_address) / PAGING_PAGE_SIZE;
     int res = 0;
     for (int i = 0; i < count; i++)
     {
@@ -125,5 +126,11 @@ void free_page(struct Page *page)
 void *align_to_paging_address(void *ptr)
 {
     uint32_t address = (uint32_t)ptr + (PAGING_PAGE_SIZE - (uint32_t)ptr % PAGING_PAGE_SIZE);
+    return (void *)address;
+}
+
+void *algin_to_lower_page(void *ptr)
+{
+    uint32_t address = (uint32_t)ptr - (uint32_t)ptr % PAGING_PAGE_SIZE;
     return (void *)address;
 }

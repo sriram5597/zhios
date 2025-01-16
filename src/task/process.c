@@ -6,6 +6,7 @@
 #include "memory/paging/paging.h"
 #include "fs/file.h"
 #include "string/string.h"
+#include "loaders/loader.h"
 
 static struct Process *current_process = 0;
 static struct Process *process_list[ZHIOS_MAX_PROCESS] = {0};
@@ -15,71 +16,22 @@ static void init_process(struct Process *process)
     memset(process, 0, sizeof(struct Process));
 }
 
-static int load_binary(const char *filename, struct Process *process)
-{
-    int res = 0;
-    int fd = fopen(filename, "r");
-    if (fd == 0)
-    {
-        res = -EIO;
-        goto out;
-    }
-    struct FileStat stat;
-    res = fstat(fd, &stat);
-    if (res < 0)
-    {
-        goto out;
-    }
-    void *program_data = kzalloc(stat.size);
-    if (!program_data)
-    {
-        res = -EMEM;
-        goto out;
-    }
-    if (fread(fd, program_data, stat.size) < 0)
-    {
-        res = -EIO;
-        goto out;
-    }
-    process->ptr = program_data;
-    process->size = stat.size;
-out:
-    fclose(fd);
-    return res;
-}
-
-static int load_data(const char *filename, struct Process *process)
-{
-    int res = 0;
-    res = load_binary(filename, process);
-    return res;
-}
-
 struct Process *get_current_process()
 {
     return current_process;
 }
 
-int process_map_binary(struct Process *process)
-{
-    int res = 0;
-    int flags = PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL;
-    int page_count = (align_to_paging_address(process->ptr + process->size) - process->ptr) / PAGING_PAGE_SIZE;
-    res = map_page_range(process->task->page_directory, (void *)ZHIOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, page_count, flags);
-    return res;
-}
-
 int process_map_memory(struct Process *process)
 {
     int res = 0;
-    res = process_map_binary(process);
+    void *data = process->file_type == PROCESS_FILETYPE_ELF ? process->elf_file : process->ptr;
+    res = loader_map_memory(process->task->page_directory, data, process->size, process->file_type);
     if (res < 0)
     {
         return res;
     }
-    int page_count = (align_to_paging_address(process->stack + ZHIOS_PROGRAM_STACK_SIZE) - process->stack) / PAGING_PAGE_SIZE;
     int page_flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITABLE;
-    res = map_page_range(process->task->page_directory, (void *)ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, page_count, page_flags);
+    res = map_page_range(process->task->page_directory, (void *)ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, ZHIOS_PROGRAM_STACK_SIZE, page_flags);
     return res;
 }
 
@@ -113,13 +65,22 @@ int load_process(const char *filename, struct Process **process)
 
     _process = kzalloc(sizeof(struct Process));
     init_process(_process);
-    res = load_data(filename, _process);
-    if (res < 0)
+    void *data = 0;
+    res = load_data(filename, &data, &_process->size);
+    if (res <= 0)
     {
         kfree(_process);
         goto out;
     }
-
+    _process->file_type = (enum ProcessFileType)res;
+    if (_process->file_type == PROCESS_FILETYPE_ELF)
+    {
+        _process->elf_file = (struct ElfFile *)data;
+    }
+    else
+    {
+        _process->ptr = data;
+    }
     stack_ptr = kzalloc(ZHIOS_PROGRAM_STACK_SIZE);
     if (!stack_ptr)
     {

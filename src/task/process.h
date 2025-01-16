@@ -6,6 +6,8 @@
 #include <config.h>
 #include "task.h"
 #include "keyboard/keyboard.h"
+#include "loaders/loader.h"
+
 struct Process
 {
     uint16_t id;
@@ -13,8 +15,13 @@ struct Process
     struct Task *task;
     void *allocations[ZHIOS_PROCESS_MAX_ALLOCATIONS];
     void *stack;
-    void *ptr;
+    union
+    {
+        void *ptr;
+        struct ElfFile *elf_file;
+    };
     uint32_t size;
+    enum ProcessFileType file_type;
     struct KeyboardBuffer keyboard_buffer;
 };
 

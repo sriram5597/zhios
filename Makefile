@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
 
 INCLUDES = -I ./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -14,7 +14,7 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	sudo mkdir /mnt/d/root/files
 	sudo mkdir /mnt/d/bin
 	sudo cp ./test.txt /mnt/d/root/files/test.txt
-	sudo cp ./programs/bin/blank.bin /mnt/d/bin/blank.bin
+	sudo cp ./programs/bin/blank.elf /mnt/d/bin/blank.elf
 	sudo umount /mnt/d
 
 ./bin/boot.bin: ./src/boot/boot.asm
@@ -108,6 +108,18 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 
 ./build/keyboard/classic.o: ./src/keyboard/classic.c
 	i686-elf-gcc ${INCLUDES} -I./src/keyboard ${FLAGS} -std=gnu99 -c ./src/keyboard/classic.c -o ./build/keyboard/classic.o
+
+./build/loaders/formats/elf.o: ./src/loaders/formats/elf.c
+	i686-elf-gcc ${INCLUDES} -I./src/loaders/formats ${FLAGS} -std=gnu99 -c ./src/loaders/formats/elf.c -o ./build/loaders/formats/elf.o
+
+./build/loaders/formats/elfloader.o: ./src/loaders/formats/elfloader.c
+	i686-elf-gcc ${INCLUDES} -I./src/loaders/formats ${FLAGS} -std=gnu99 -c ./src/loaders/formats/elfloader.c -o ./build/loaders/formats/elfloader.o
+
+./build/loaders/formats/binary.o: ./src/loaders/formats/binary.c
+	i686-elf-gcc ${INCLUDES} -I./src/loaders/formats ${FLAGS} -std=gnu99 -c ./src/loaders/formats/binary.c -o ./build/loaders/formats/binary.o
+
+./build/loaders/loader.o: ./src/loaders/loader.c
+	i686-elf-gcc ${INCLUDES} -I./src/loaders ${FLAGS} -std=gnu99 -c ./src/loaders/loader.c -o ./build/loaders/loader.o
 
 user_programs:
 	cd ./programs && ${MAKE} all

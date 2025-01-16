@@ -5,6 +5,7 @@
 #define EINARG 1
 #define EMEM 2
 #define EIO 3
+#define EINFORMAT 4
 
 #define ISERR(value) value < 0
 #define ERROR_I(value) (int)value

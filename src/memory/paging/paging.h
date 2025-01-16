@@ -24,11 +24,12 @@ uint32_t *paging_get_directory(struct Page *chunk);
 void enable_paging();
 void paging_switch(struct Page *page);
 int map_page(struct Page *page, void *virtual_address, void *phy_address, int flags);
-int map_page_range(struct Page *page, void *virtual_address, void *phy_address, int count, int flags);
+int map_page_range(struct Page *page, void *virtual_address, void *phy_address, int size, int flags);
 void *align_to_paging_address(void *ptr);
 struct Page *init_paging(uint8_t flags);
 void free_page(struct Page *page);
 uint32_t get_page(uint32_t *directory, void *virtual_address);
 int set_page(uint32_t *directory, void *virtual_address, uint32_t phy_address);
+void *algin_to_lower_page(void *ptr);
 
 #endif

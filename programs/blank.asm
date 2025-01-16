@@ -5,7 +5,11 @@ section .text
 global _start
 
 _start:
-    
+    mov eax, message
+    push eax
+    mov eax, 1
+    int 0x80
+    add esp, 4
 _loop:
     call getKey
     cmp eax, 0x1B
@@ -26,3 +30,6 @@ getKey:
 
 out:
     jmp $
+
+section .data
+    message: db "Loaded ELF File....", 0

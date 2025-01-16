@@ -40,8 +40,8 @@ void kernel_main()
     keyboard_init();
 
     struct Process *process = 0;
-    int res = process_load_and_switch("0:/bin/blank.bin", &process);
-    if (res != 0)
+    int res = process_load_and_switch("0:/bin/blank.elf", &process);
+    if (res < 0)
     {
         print("Failed to load process..");
     }
