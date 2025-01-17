@@ -1,4 +1,4 @@
-#include "console/console.h"
+#include "stdio/stdio.h"
 #include "stdlib/stdlib.h"
 
 int main(int argc, char **argv)
@@ -11,13 +11,8 @@ int main(int argc, char **argv)
     }
     free(ptr);
 
-    while (1)
-    {
-        char c = getkey();
-        if (c != 0)
-        {
-            print(c);
-        }
-    }
+    char buffer[51];
+    read_line(buffer, 50, true);
+    printf("\nInput: %s", buffer);
     return 0;
 }
