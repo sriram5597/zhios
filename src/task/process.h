@@ -3,6 +3,7 @@
 #define PROCESS_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <config.h>
 #include "task.h"
 #include "keyboard/keyboard.h"
@@ -30,5 +31,7 @@ void free_process(int process_id);
 struct Process *get_process(int process_id);
 struct Process *get_current_process();
 int process_load_and_switch(const char *filename, struct Process **process);
+void *process_malloc(struct Process *process, size_t size);
+void process_free_allocation(struct Process *process, void *ptr);
 
 #endif

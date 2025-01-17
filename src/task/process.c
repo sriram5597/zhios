@@ -1,4 +1,5 @@
 #include "process.h"
+#include <stddef.h>
 #include "status.h"
 #include "config.h"
 #include "memory/memory.h"
@@ -121,4 +122,59 @@ void free_process(int process_id)
     kfree(process->stack);
     kfree(process->ptr);
     kfree(process);
+}
+
+static int process_get_allocation(struct Process *process)
+{
+    int res = -EMEM;
+    for (int i = 0; i < ZHIOS_PROCESS_MAX_ALLOCATIONS; i++)
+    {
+        if (process->allocations[i] == 0)
+        {
+            res = i;
+            break;
+        }
+    }
+    return res;
+}
+
+void *process_malloc(struct Process *process, size_t size)
+{
+    int ind = process_get_allocation(process);
+    if (ind < 0)
+    {
+        return 0;
+    }
+    void *ptr = kzalloc(size);
+    if (!ptr)
+    {
+        return 0;
+    }
+    process->allocations[ind] = ptr;
+    return ptr;
+}
+
+static int process_get_ptr_allocation(struct Process *process, void *ptr)
+{
+    int res = -EMEM;
+    for (int i = 0; i < ZHIOS_PROCESS_MAX_ALLOCATIONS; i++)
+    {
+        if (process->allocations[i] == ptr)
+        {
+            res = i;
+            break;
+        }
+    }
+    return res;
+}
+
+void process_free_allocation(struct Process *process, void *ptr)
+{
+    int ind = process_get_ptr_allocation(process, ptr);
+    if (ind < 0)
+    {
+        return;
+    }
+    process->allocations[ind] = 0x00;
+    kfree(ptr);
 }

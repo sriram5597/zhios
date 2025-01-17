@@ -3,7 +3,7 @@
 global _start
 extern main
 
-section .asm
+section .text
 
 _start:
     call main

@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/isr80h/memory.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
 
 INCLUDES = -I ./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -103,6 +103,9 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 ./build/isr80h/io.o: ./src/isr80h/io.c
 	i686-elf-gcc ${INCLUDES} -I./src/isr80h ${FLAGS} -std=gnu99 -c ./src/isr80h/io.c -o ./build/isr80h/io.o
 
+./build/isr80h/memory.o: ./src/isr80h/memory.c
+	i686-elf-gcc ${INCLUDES} -I./src/isr80h ${FLAGS} -std=gnu99 -c ./src/isr80h/memory.c -o ./build/isr80h/memory.o
+
 ./build/keyboard/keyboard.o: ./src/keyboard/keyboard.c
 	i686-elf-gcc ${INCLUDES} -I./src/keyboard ${FLAGS} -std=gnu99 -c ./src/keyboard/keyboard.c -o ./build/keyboard/keyboard.o
 
@@ -122,11 +125,11 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	i686-elf-gcc ${INCLUDES} -I./src/loaders ${FLAGS} -std=gnu99 -c ./src/loaders/loader.c -o ./build/loaders/loader.o
 
 user_programs:
-	cd ./programs/lib && $(MAKE) all
+	cd ./lib && $(MAKE) all
 	cd ./programs && ${MAKE} all
 
 user_programs_clean:
-	cd ./programs/lib && $(MAKE) clean
+	cd ./lib && $(MAKE) clean
 	cd ./programs && ${MAKE} clean
 
 clean: user_programs_clean
