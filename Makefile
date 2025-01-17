@@ -122,9 +122,11 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	i686-elf-gcc ${INCLUDES} -I./src/loaders ${FLAGS} -std=gnu99 -c ./src/loaders/loader.c -o ./build/loaders/loader.o
 
 user_programs:
+	cd ./programs/lib && $(MAKE) all
 	cd ./programs && ${MAKE} all
 
 user_programs_clean:
+	cd ./programs/lib && $(MAKE) clean
 	cd ./programs && ${MAKE} clean
 
 clean: user_programs_clean
