@@ -1,13 +1,8 @@
-FILES=./build/blank.o
-INCLUDES=-I../lib/src
-FLAGS=-g -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
-
-all: ${FILES}
-	i686-elf-gcc -g -T ./linker.ld -o ./bin/blank.elf -ffreestanding -O0 -nostdlib -fpic -g ${FILES} ../lib/build/lib.elf
-
-./build/blank.o: ./src/blank.c
-	i686-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -g -c ./src/blank.c -o ./build/blank.o
+all:
+	cd ./shell && ${MAKE} all
+	cd ./blank && ${MAKE} all
 
 clean:
-	rm -rf ${FILES}
-	rm ./bin/blank.elf
+	cd ./shell && ${MAKE} clean
+	cd ./blank && ${MAKE} clean
+	rm ./bin/*

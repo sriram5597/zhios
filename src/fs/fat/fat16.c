@@ -482,7 +482,6 @@ struct Fat16Item *find_item_in_directory(struct disk *disk, struct Fat16Director
         }
         if (istrncmp(filename, path->path_name, strlen(filename)) == 0)
         {
-            print("file found...\n");
             item = new_fat16_item(disk, &directory->directory_item[i]);
             break;
         }
@@ -521,11 +520,8 @@ void *fat16_open(struct disk *disk, struct Path *path, FileMode mode)
     {
         return 0;
     }
-    print("File Opened: ");
     char filename[ZHIOS_MAX_PATH];
     get_fat16_filename(descriptor->item->item, filename);
-    print(filename);
-    print("\n");
     descriptor->pos = 0;
     return descriptor;
 }

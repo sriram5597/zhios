@@ -1,4 +1,4 @@
-FILES=./build/entry.o ./build/stdio.o ./build/stdlib.o ./build/stdlib.asm.o ./build/stdio.asm.o
+FILES=./build/entry.o ./build/stdio.o ./build/stdlib.o ./build/stdlib.asm.o ./build/stdio.asm.o ./build/proc.o ./build/proc.asm.o
 INCLUDES=-I./src
 FLAGS=-g -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -19,6 +19,12 @@ all: ${FILES}
 
 ./build/stdlib.asm.o: ./src/stdlib/stdlib.asm
 	nasm -f elf ./src/stdlib/stdlib.asm -o ./build/stdlib.asm.o
+
+./build/proc.o: ./src/proc/proc.c
+	i686-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/proc/proc.c -o ./build/proc.o
+
+./build/proc.asm.o: ./src/proc/proc.asm
+	nasm -f elf ./src/proc/proc.asm -o ./build/proc.asm.o
 
 clean:
 	rm -rf ${FILES}

@@ -9,6 +9,7 @@ enum SystemCommands
     SYSTEM_COMMAND3_GETKEY,
     SYSTEM_COMMAND4_MALLOC,
     SYSTEM_COMMAND5_FREE,
+    SYSTEM_COMMAND6_START_PROCESS,
 };
 
 void register_system_commands();

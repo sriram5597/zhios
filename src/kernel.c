@@ -40,7 +40,7 @@ void kernel_main()
     keyboard_init();
 
     struct Process *process = 0;
-    int res = process_load_and_switch("0:/bin/blank.elf", &process);
+    int res = process_load_and_switch("0:/bin/shell.elf", &process);
     if (res < 0)
     {
         print("Failed to load process..");
@@ -48,7 +48,6 @@ void kernel_main()
     else
     {
         run_first_task();
-        print("Hello World!\n");
     }
     while (1)
     {
