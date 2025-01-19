@@ -2,7 +2,7 @@
 #include "elf.h"
 #include "status.h"
 #include <stdbool.h>
-#include "memory/memory.h"
+#include "memory.h"
 #include "memory/heap/kheap.h"
 #include "fs/file.h"
 

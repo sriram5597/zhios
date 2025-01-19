@@ -1,5 +1,5 @@
 #include "string.h"
-#include "terminal/terminal.h"
+#include <stdbool.h>
 
 int strlen(const char *str)
 {
@@ -21,7 +21,7 @@ int atoi(char ch)
     return (int)(ch - '0');
 }
 
-char itoa(int num)
+char digit_to_char(int num)
 {
     return num + '0';
 }
@@ -128,4 +128,20 @@ void strcat(const char *s1, const char *s2, char *dest)
         dest++;
     }
     *dest = '\0';
+}
+
+int str_token(char *str, char **tokens, char delimiter)
+{
+    int token_count = 0;
+    int len = strlen(str);
+    tokens[token_count++] = &str[0];
+    for (int i = 0; i < len; i++)
+    {
+        if (str[i] == delimiter)
+        {
+            str[i] = '\0';
+            tokens[token_count++] = &str[i + 1];
+        }
+    }
+    return token_count;
 }

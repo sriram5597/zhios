@@ -2,11 +2,11 @@
 #include <stddef.h>
 #include "status.h"
 #include "config.h"
-#include "memory/memory.h"
+#include "memory.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "fs/file.h"
-#include "string/string.h"
+#include "string.h"
 #include "loaders/loader.h"
 
 static struct Process *current_process = 0;

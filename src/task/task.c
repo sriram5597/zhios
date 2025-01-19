@@ -6,10 +6,10 @@
 #include "loaders/loader.h"
 #include "loaders/formats/elf.h"
 #include "loaders/formats/elfloader.h"
-#include "string/string.h"
+#include "string.h"
 #include "memory/heap/kheap.h"
 #include "terminal/terminal.h"
-#include "memory/memory.h"
+#include "memory.h"
 #include "memory/paging/paging.h"
 #include "interrupts/interrupts.h"
 

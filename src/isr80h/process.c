@@ -1,5 +1,5 @@
 #include "process.h"
-#include "string/string.h"
+#include "string.h"
 #include "config.h"
 #include "task/task.h"
 #include "task/process.h"

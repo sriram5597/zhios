@@ -2,10 +2,10 @@
 #include "status.h"
 #include "config.h"
 #include "fs/fat/fat16.h"
-#include "memory/memory.h"
+#include "memory.h"
 #include "memory/heap/kheap.h"
 #include "fs/path.h"
-#include "string/string.h"
+#include "string.h"
 #include "disk/disk.h"
 
 FileSystem *file_systems[ZHIOS_MAX_FILE_SYSTEMS];

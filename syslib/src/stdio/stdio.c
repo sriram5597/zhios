@@ -1,7 +1,7 @@
 #include "stdio.h"
 #include <stdarg.h>
 #include <stdbool.h>
-#include "stdlib/stdlib.h"
+#include "stdlib.h"
 
 extern void system_putchar(char c);
 extern char system_getchar();

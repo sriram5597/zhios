@@ -1,6 +1,6 @@
 #include "path.h"
-#include "string/string.h"
-#include "memory/memory.h"
+#include "string.h"
+#include "memory.h"
 #include "status.h"
 #include "config.h"
 #include "memory/heap/kheap.h"

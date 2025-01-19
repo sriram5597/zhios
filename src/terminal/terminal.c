@@ -1,5 +1,5 @@
 #include "terminal.h"
-#include "string/string.h"
+#include "string.h"
 #include <stdint.h>
 #include <stddef.h>
 

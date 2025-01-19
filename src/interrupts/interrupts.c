@@ -5,7 +5,7 @@
 #include "config.h"
 #include "kernel.h"
 #include "task/task.h"
-#include "memory/memory.h"
+#include "memory.h"
 #include "terminal/terminal.h"
 #include "io/io.h"
 

@@ -1,6 +1,6 @@
 #include "gdt.h"
 #include "config.h"
-#include "memory/memory.h"
+#include "memory.h"
 #include "task/task.h"
 
 struct GdtEntry gdt_table[ZHIOS_TOTAL_GDT_SEGMENTS];

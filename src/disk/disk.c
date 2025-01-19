@@ -2,7 +2,7 @@
 #include "config.h"
 #include "io/io.h"
 #include "status.h"
-#include "memory/memory.h"
+#include "memory.h"
 
 Disk disk;
 

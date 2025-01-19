@@ -1,6 +1,6 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/memory/memory.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/isr80h/process.o ./build/isr80h/memory.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
-
-INCLUDES = -I ./src
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/isr80h/process.o ./build/isr80h/memory.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
+LIB_FILES = ./lib/build/lib.o
+INCLUDES = -I ./src -I ./lib/includes
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 all: ./bin/boot.bin ./bin/kernel.bin user_programs
@@ -21,9 +21,9 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin -g -o bin/boot.bin src/boot/boot.asm
 
-./bin/kernel.bin: $(FILES)
-	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
-	i686-elf-gcc -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
+./bin/kernel.bin: build_lib $(FILES)
+	i686-elf-ld -g -relocatable $(FILES)  -o ./build/kernelfull.o
+	i686-elf-gcc -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o $(LIB_FILES)
 
 ./build/kernel.asm.o: ./src/kernel.asm
 	nasm -f elf -g -o ./build/kernel.asm.o ./src/kernel.asm
@@ -39,10 +39,6 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 
 ./build/terminal/terminal.o: ./src/terminal/terminal.c
 	i686-elf-gcc ${INCLUDES} -I./src/terminal ${FLAGS} -std=gnu99 -c ./src/terminal/terminal.c -o ./build/terminal/terminal.o
-
-
-./build/memory/memory.o: ./src/memory/memory.c
-	i686-elf-gcc ${INCLUDES} -I./src/memory ${FLAGS} -std=gnu99 -c ./src/memory/memory.c -o ./build/memory/memory.o
 
 ./build/memory/heap/heap.o: ./src/memory/heap/heap.c
 	i686-elf-gcc ${INCLUDES} -I./src/memory/heap ${FLAGS} -std=gnu99 -c ./src/memory/heap/heap.c -o ./build/memory/heap/heap.o
@@ -67,9 +63,6 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 
 ./build/disk/stream.o: ./src/disk/stream.c
 	i686-elf-gcc ${INCLUDES} -I./src/disk ${FLAGS} -std=gnu99 -c ./src/disk/stream.c -o ./build/disk/stream.o
-
-./build/string/string.o: ./src/string/string.c
-	i686-elf-gcc ${INCLUDES} -I./src/string ${FLAGS} -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
 
 ./build/fs/path.o: ./src/fs/path.c
 	i686-elf-gcc ${INCLUDES} -I./src/fs ${FLAGS} -std=gnu99 -c ./src/fs/path.c -o ./build/fs/path.o
@@ -110,7 +103,6 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 ./build/isr80h/process.o: ./src/isr80h/process.c
 	i686-elf-gcc ${INCLUDES} -I./src/isr80h ${FLAGS} -std=gnu99 -c ./src/isr80h/process.c -o ./build/isr80h/process.o
 
-
 ./build/keyboard/keyboard.o: ./src/keyboard/keyboard.c
 	i686-elf-gcc ${INCLUDES} -I./src/keyboard ${FLAGS} -std=gnu99 -c ./src/keyboard/keyboard.c -o ./build/keyboard/keyboard.o
 
@@ -129,15 +121,21 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 ./build/loaders/loader.o: ./src/loaders/loader.c
 	i686-elf-gcc ${INCLUDES} -I./src/loaders ${FLAGS} -std=gnu99 -c ./src/loaders/loader.c -o ./build/loaders/loader.o
 
+build_lib:
+	cd ./lib && ${MAKE} all
+
+clean_lib:
+	cd ./lib && ${MAKE} clean
+
 user_programs:
-	cd ./lib && $(MAKE) all
+	cd ./syslib && ${MAKE} all
 	cd ./programs && ${MAKE} all
 
 user_programs_clean:
-	cd ./lib && $(MAKE) clean
+	cd ./syslib && $(MAKE) clean
 	cd ./programs && ${MAKE} clean
 
-clean: user_programs_clean
+clean: user_programs_clean clean_lib
 	rm -rf ./bin/*.bin
 	rm -rf ./build/*.o
 	rm -rf ./build/*/**.o

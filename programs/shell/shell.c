@@ -1,6 +1,6 @@
 #include "shell.h"
-#include "stdio/stdio.h"
-#include "proc/proc.h"
+#include "stdio.h"
+#include "proc.h"
 
 int main(int argc, char **argv)
 {
