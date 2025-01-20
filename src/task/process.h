@@ -9,12 +9,18 @@
 #include "keyboard/keyboard.h"
 #include "loaders/loader.h"
 
+struct ProcessAllocation
+{
+    void *ptr;
+    size_t size;
+};
+
 struct Process
 {
     uint16_t id;
     char filename[ZHIOS_MAX_PATH];
     struct Task *task;
-    void *allocations[ZHIOS_PROCESS_MAX_ALLOCATIONS];
+    struct ProcessAllocation allocations[ZHIOS_PROCESS_MAX_ALLOCATIONS];
     void *stack;
     union
     {

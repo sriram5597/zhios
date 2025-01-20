@@ -129,7 +129,7 @@ static int process_get_allocation(struct Process *process)
     int res = -EMEM;
     for (int i = 0; i < ZHIOS_PROCESS_MAX_ALLOCATIONS; i++)
     {
-        if (process->allocations[i] == 0)
+        if (process->allocations[i].ptr == 0)
         {
             res = i;
             break;
@@ -150,8 +150,17 @@ void *process_malloc(struct Process *process, size_t size)
     {
         return 0;
     }
-    process->allocations[ind] = ptr;
+    int res = map_page_range(process->task->page_directory, ptr, ptr, size, PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITABLE);
+    if (res < 0)
+    {
+        goto out_err;
+    }
+    process->allocations[ind].ptr = ptr;
+    process->allocations[ind].size = size;
     return ptr;
+out_err:
+    kfree(ptr);
+    return 0;
 }
 
 static int process_get_ptr_allocation(struct Process *process, void *ptr)
@@ -159,7 +168,7 @@ static int process_get_ptr_allocation(struct Process *process, void *ptr)
     int res = -EMEM;
     for (int i = 0; i < ZHIOS_PROCESS_MAX_ALLOCATIONS; i++)
     {
-        if (process->allocations[i] == ptr)
+        if (process->allocations[i].ptr == ptr)
         {
             res = i;
             break;
@@ -175,6 +184,9 @@ void process_free_allocation(struct Process *process, void *ptr)
     {
         return;
     }
-    process->allocations[ind] = 0x00;
+    struct ProcessAllocation *allocation = &process->allocations[ind];
+    map_page_range(process->task->page_directory, allocation->ptr, allocation->ptr, allocation->size, 0x00);
+    process->allocations[ind].ptr = 0x00;
+    process->allocations[ind].size = 0;
     kfree(ptr);
 }

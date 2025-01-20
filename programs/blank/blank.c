@@ -5,7 +5,12 @@
 int main(int argc, char **argv)
 {
     char str[] = "Hello from c";
-    char *tokens[100];
+    char **tokens = (char **)malloc(50);
+    if (tokens == 0)
+    {
+        printf("Failed to allocate memory...");
+        goto out;
+    }
     printf("Tokenizing string...\n");
 
     int token_count = str_token(str, tokens, ' ');
@@ -15,6 +20,8 @@ int main(int argc, char **argv)
     {
         printf("Token %d: %s\n", i + 1, tokens[i]);
     }
+out:
+    free((void *)tokens);
     while (1)
     {
     }
