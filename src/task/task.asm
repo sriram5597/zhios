@@ -16,6 +16,7 @@ restore_task:
     ; PUSH IP
     mov ebx, [ebp + 4]
 
+    mov ebp, [ebx + 8]
     ; push data/stack selector
     push dword [ebx + 44]
 
@@ -41,26 +42,14 @@ restore_task:
     mov fs, ax
     mov gs, ax
 
-    push dword [ebp + 4]
-    call restore_general_purpose_registers
-    add esp, 4
-
-    iretd
-
-; restore_general_purpose_registers(struct Registers* registers)
-restore_general_purpose_registers:
-    push ebp
-    mov ebp, esp
-    mov ebx, [ebp + 8]
     mov edi, [ebx]
     mov esi, [ebx + 4]
-    mov ebp, [ebx + 8]
     mov edx, [ebx + 16]
     mov ecx, [ebx + 20]
     mov eax, [ebx + 24]
     mov ebx, [ebx + 12]
-    pop ebp
-    ret
+
+    iretd
 
 ; void user_registers()
 user_registers:

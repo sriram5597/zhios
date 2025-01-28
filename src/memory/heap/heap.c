@@ -2,6 +2,7 @@
 #include "config.h"
 #include "status.h"
 #include "memory.h"
+#include "terminal/terminal.h"
 #include <stdbool.h>
 
 static bool is_valid_alignment(void *ptr)

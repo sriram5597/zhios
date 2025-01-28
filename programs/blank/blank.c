@@ -1,27 +1,25 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "argparser.h"
 
 int main(int argc, char **argv)
 {
     char str[] = "Hello from c";
-    char **tokens = (char **)malloc(50);
-    if (tokens == 0)
+    printf("Argc: %d\n", argc);
+    for (int i = 0; i < argc; i++)
     {
-        printf("Failed to allocate memory...");
-        goto out;
+        printf("Arg %d: %s \n", i, argv[i]);
     }
-    printf("Tokenizing string...\n");
-
-    int token_count = str_token(str, tokens, ' ');
-
-    printf("------------\n");
-    for (int i = 0; i < token_count; i++)
+    struct CommandArgument *root = arg_parse(str, strlen(str));
+    struct CommandArgument *current = root;
+    while (current)
     {
-        printf("Token %d: %s\n", i + 1, tokens[i]);
+        printf("%s -> ", current->argument);
+        current = current->next;
     }
+    printf("\n");
 out:
-    free((void *)tokens);
     while (1)
     {
     }

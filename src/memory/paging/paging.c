@@ -134,3 +134,11 @@ void *algin_to_lower_page(void *ptr)
     uint32_t address = (uint32_t)ptr - (uint32_t)ptr % PAGING_PAGE_SIZE;
     return (void *)address;
 }
+
+uint32_t paging_get_physical_address(struct Page *page, void *virtual)
+{
+    uint32_t offset = (uint32_t) virtual % PAGING_PAGE_SIZE;
+    uint32_t page_start_address = (uint32_t) virtual - offset;
+    uint32_t base_address = get_page(page->directory_entry, (void *)page_start_address) & ~0xFFF;
+    return base_address + offset;
+}

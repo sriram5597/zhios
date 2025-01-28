@@ -5,6 +5,8 @@
 int main(int argc, char **argv)
 {
     print("ZHIOS v1.0.0\n\n");
+    int *ptr = (int *)(0x3ff000 - sizeof(int));
+    printf("Argc: %d, stack: %d\n", argc, *ptr);
     while (1)
     {
         char buffer[1024];

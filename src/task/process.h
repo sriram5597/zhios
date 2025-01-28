@@ -15,6 +15,13 @@ struct ProcessAllocation
     size_t size;
 };
 
+struct ProcessParameters
+{
+    uint32_t count;
+    char *command_arguments[ZHIOS_MAX_PROCESS_ARGUMENTS];
+    uint32_t start_address;
+};
+
 struct Process
 {
     uint16_t id;
@@ -30,14 +37,16 @@ struct Process
     uint32_t size;
     enum ProcessFileType file_type;
     struct KeyboardBuffer keyboard_buffer;
+    struct ProcessParameters *parameters;
 };
 
-int load_process(const char *filename, struct Process **process);
+int load_process(const char *filename, struct Process **process, char *args);
 void free_process(int process_id);
 struct Process *get_process(int process_id);
 struct Process *get_current_process();
 int process_load_and_switch(const char *filename, struct Process **process);
 void *process_malloc(struct Process *process, size_t size);
 void process_free_allocation(struct Process *process, void *ptr);
+int process_load_with_args(const char *filename, struct Process **process, char *args);
 
 #endif

@@ -31,5 +31,6 @@ void free_page(struct Page *page);
 uint32_t get_page(uint32_t *directory, void *virtual_address);
 int set_page(uint32_t *directory, void *virtual_address, uint32_t phy_address);
 void *algin_to_lower_page(void *ptr);
+uint32_t paging_get_physical_address(struct Page *page, void *virtual);
 
 #endif

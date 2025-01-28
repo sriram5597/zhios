@@ -1,5 +1,5 @@
 FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal/terminal.o ./build/interrupts/interrupts.asm.o ./build/interrupts/interrupts.o ./build/io/io.asm.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/fs/path.o ./build/disk/stream.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/task/task.asm.o ./build/task/tss.asm.o ./build/task/task.o ./build/task/process.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/isr80h/process.o ./build/isr80h/memory.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/loaders/formats/elf.o ./build/loaders/formats/elfloader.o ./build/loaders/formats/binary.o ./build/loaders/loader.o
-LIB_FILES = ./lib/build/lib.o
+LIB_FILES = ./lib/build/string.o ./lib/build/memory.o
 INCLUDES = -I ./src -I ./lib/includes
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-functions -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 

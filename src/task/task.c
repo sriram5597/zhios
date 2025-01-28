@@ -50,10 +50,23 @@ out:
     return task;
 }
 
+void init_stack(struct Task *task)
+{
+    if (task->process->parameters->count > 0)
+    {
+        int *arg_ptr = (int *)(ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - sizeof(int));
+        print("Argument: ");
+        print(task->process->parameters->command_arguments[0]);
+        print("\n");
+        *arg_ptr = task->process->parameters->count;
+    }
+}
+
 int switch_task(struct Task *task)
 {
     current_task = task;
     paging_switch(task->page_directory);
+    // init_stack(task);
     return 0;
 }
 
@@ -133,6 +146,7 @@ static int init_task(struct Task *task, struct Process *process)
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.cs = USER_CODE_SEGMENT;
     task->registers.esp = ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+    task->registers.ebp = ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
     return 0;
 }
 
