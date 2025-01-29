@@ -28,7 +28,7 @@ struct Process *get_current_process()
 int process_map_memory(struct Process *process)
 {
     int res = 0;
-    void *data = process->file_type == PROCESS_FILETYPE_ELF ? process->elf_file : process->ptr;
+    void *data = process->file_type == PROCESS_FILETYPE_ELF ? process->program_data.elf_file : process->program_data.elf_file;
     res = loader_map_memory(process->task->page_directory, data, process->size, process->file_type);
     if (res < 0)
     {
@@ -129,11 +129,11 @@ int load_process(const char *filename, struct Process **process, char *arguments
     _process->file_type = (enum ProcessFileType)res;
     if (_process->file_type == PROCESS_FILETYPE_ELF)
     {
-        _process->elf_file = (struct ElfFile *)data;
+        _process->program_data.elf_file = (struct ElfFile *)data;
     }
     else
     {
-        _process->ptr = data;
+        _process->program_data.ptr = data;
     }
     _process->task = create_task(_process);
     stack_ptr = kzalloc(ZHIOS_PROGRAM_STACK_SIZE);
@@ -183,13 +183,53 @@ int process_load_with_args(const char *filename, struct Process **process, char 
     return res;
 }
 
-void free_process(int process_id)
+static void process_free_all_allocations(struct Process *process)
 {
-    struct Process *process = get_process(process_id);
+    for (int i = 0; i < ZHIOS_PROCESS_MAX_ALLOCATIONS; i++)
+    {
+
+        process_free_allocation(process, process->allocations[i].ptr);
+    }
+}
+
+void process_switch_to_any()
+{
+    for (int i = 0; i < ZHIOS_MAX_PROCESS; i++)
+    {
+        if (process_list[i])
+        {
+            process_switch(process_list[i]);
+            return;
+        }
+    }
+    print("No Process to schedule...\n");
+    while (1)
+    {
+    }
+    return;
+}
+
+static void process_unlink(struct Process *process)
+{
+    process_list[process->id] = 0x00;
+    if (process == current_process)
+    {
+        process_switch_to_any();
+    }
+}
+
+void process_free(struct Process *process)
+{
+    process_free_all_allocations(process);
+    loader_free_data(&process->program_data, process->file_type);
     free_task(process->task);
     kfree(process->stack);
-    kfree(process->ptr);
+    if (process->parameters)
+    {
+        kfree(process->parameters);
+    }
     kfree(process);
+    process_unlink(process);
 }
 
 static int process_get_allocation(struct Process *process)

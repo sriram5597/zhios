@@ -50,23 +50,10 @@ out:
     return task;
 }
 
-void init_stack(struct Task *task)
-{
-    if (task->process->parameters->count > 0)
-    {
-        int *arg_ptr = (int *)(ZHIOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - sizeof(int));
-        print("Argument: ");
-        print(task->process->parameters->command_arguments[0]);
-        print("\n");
-        *arg_ptr = task->process->parameters->count;
-    }
-}
-
 int switch_task(struct Task *task)
 {
     current_task = task;
     paging_switch(task->page_directory);
-    // init_stack(task);
     return 0;
 }
 
@@ -141,7 +128,7 @@ static int init_task(struct Task *task, struct Process *process)
     task->registers.ip = ZHIOS_PROGRAM_VIRTUAL_ADDRESS;
     if (process->file_type == PROCESS_FILETYPE_ELF)
     {
-        task->registers.ip = elf_get_header(process->elf_file)->e_entry;
+        task->registers.ip = elf_get_header(process->program_data.elf_file)->e_entry;
     }
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.cs = USER_CODE_SEGMENT;
@@ -225,4 +212,19 @@ void *task_get_stack_item(struct Task *task, int index)
     result = (void *)st_ptr[index];
     kernel_page();
     return result;
+}
+
+void *task_next()
+{
+    struct Task *next_task = get_next_task();
+    if (!next_task)
+    {
+        print("No task to run!\n");
+        while (1)
+        {
+        }
+    }
+    switch_task(next_task);
+    restore_task(&next_task->registers);
+    return 0;
 }

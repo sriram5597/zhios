@@ -27,3 +27,11 @@ void *isr80h_load_process_command(struct InterruptFrame *frame)
 out:
     return 0;
 }
+
+void *isr80h_exit_process_command(struct InterruptFrame *frame)
+{
+    struct Process *process = get_current_task()->process;
+    process_free(process);
+    task_next();
+    return 0;
+}

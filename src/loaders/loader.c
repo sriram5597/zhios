@@ -5,6 +5,7 @@
 #include "loaders/formats/elfloader.h"
 #include "loaders/formats/elf.h"
 #include "memory/paging/paging.h"
+#include "memory/heap/kheap.h"
 
 int load_data(const char *filename, void **data, uint32_t *size)
 {
@@ -71,4 +72,19 @@ int loader_map_memory(struct Page *page, void *data, uint32_t size, enum Process
         break;
     }
     return res;
+}
+
+void loader_free_data(union ProgramData *program_data, enum ProcessFileType file_type)
+{
+    switch (file_type)
+    {
+    case PROCESS_FILETYPE_ELF:
+        elf_close(program_data->elf_file);
+        break;
+    case PROCESS_FILETYPE_BINARY:
+        kfree(program_data->ptr);
+        break;
+    default:
+        break;
+    }
 }

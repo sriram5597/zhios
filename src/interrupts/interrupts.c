@@ -7,6 +7,8 @@
 #include "task/task.h"
 #include "memory.h"
 #include "terminal/terminal.h"
+#include "task/process.h"
+#include "task/task.h"
 #include "io/io.h"
 
 struct interrupt_table interrupt_table;
@@ -107,6 +109,12 @@ void set_interrupt(int interrupt_num, void *address)
     entry->offset_2 = (uint32_t)address >> 16 & 0xffff;
 }
 
+void handle_exceptions()
+{
+    process_free(get_current_task()->process);
+    task_next();
+}
+
 void init_interrupts()
 {
     memset(interrupt_entries, 0, sizeof(interrupt_entries));
@@ -120,6 +128,11 @@ void init_interrupts()
 
     set_interrupt(0, int0h);
     set_interrupt(0x80, isr80h);
+
+    for (int i = 0; i < 0x20; i++)
+    {
+        register_service_routine(i, handle_exceptions);
+    }
 
     load_interrupts(&interrupt_table);
 }

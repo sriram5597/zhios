@@ -29,11 +29,7 @@ struct Process
     struct Task *task;
     struct ProcessAllocation allocations[ZHIOS_PROCESS_MAX_ALLOCATIONS];
     void *stack;
-    union
-    {
-        void *ptr;
-        struct ElfFile *elf_file;
-    };
+    union ProgramData program_data;
     uint32_t size;
     enum ProcessFileType file_type;
     struct KeyboardBuffer keyboard_buffer;
@@ -41,7 +37,7 @@ struct Process
 };
 
 int load_process(const char *filename, struct Process **process, char *args);
-void free_process(int process_id);
+void process_free(struct Process *process);
 struct Process *get_process(int process_id);
 struct Process *get_current_process();
 int process_load_and_switch(const char *filename, struct Process **process);

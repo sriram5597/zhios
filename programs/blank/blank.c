@@ -20,8 +20,5 @@ int main(int argc, char **argv)
     }
     printf("\n");
 out:
-    while (1)
-    {
-    }
     return 0;
 }

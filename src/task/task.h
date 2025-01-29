@@ -77,5 +77,6 @@ void task_save_current_state(struct InterruptFrame *);
 int copy_string_from_task(struct Task *task, void *virtual, void *phy_address, int max);
 void *task_get_stack_item(struct Task *task, int index);
 int switch_to_task_page(struct Task *task);
+void *task_next();
 
 #endif
