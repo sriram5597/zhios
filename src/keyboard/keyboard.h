@@ -2,6 +2,7 @@
 #define KEYBOARD_H
 
 #include "config.h"
+#include <stdbool.h>
 
 typedef int (*KEYBOARD_INIT_FUNCTION)();
 
@@ -9,6 +10,7 @@ struct Keyboard
 {
     char name[20];
     KEYBOARD_INIT_FUNCTION init;
+    bool capslock_on;
     struct Keyboard *next;
 };
 

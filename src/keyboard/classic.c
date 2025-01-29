@@ -6,6 +6,8 @@
 #include "kernel.h"
 #include "task/task.h"
 
+#define CLASSIC_KEYBOARD_CAPSLOCK_KEY 0x3A
+
 int classic_keyboard_init();
 
 static uint8_t keyboard_scan_set_1[] = {
@@ -41,6 +43,13 @@ uint8_t classic_get_key_from_scancode(uint8_t scan_code)
         return 0;
     }
     char c = keyboard_scan_set_1[scan_code];
+    if (!classic.capslock_on)
+    {
+        if (c >= 'A' && c <= 'Z')
+        {
+            c += 32;
+        }
+    }
     return c;
 }
 
@@ -58,6 +67,10 @@ void classic_keyboard_interrupt_handler()
     if (scancode & KEY_RELEASED)
     {
         return;
+    }
+    if (scancode == CLASSIC_KEYBOARD_CAPSLOCK_KEY)
+    {
+        classic.capslock_on = !classic.capslock_on;
     }
     uint8_t c = classic_get_key_from_scancode(scancode);
     if (c != 0)
