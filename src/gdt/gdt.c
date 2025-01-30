@@ -11,7 +11,7 @@ extern void load_gdt(struct GdtEntry *entry, int size);
 
 void load_entries()
 {
-    memset(gdt_table, 0x00, sizeof(gdt_table));
+    memset(gdt_table, 0x00, sizeof(gdt_table) - 1);
     for (int i = 0; i < ZHIOS_TOTAL_GDT_SEGMENTS; i++)
     {
         struct GdtEntry entry;
@@ -26,7 +26,7 @@ void load_entries()
         entry.access = entity.type;
         gdt_table[i] = entry;
     }
-    load_gdt(gdt_table, sizeof(gdt_table));
+    load_gdt(gdt_table, sizeof(gdt_table) - 1);
 }
 
 void init_gdt()

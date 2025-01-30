@@ -33,6 +33,7 @@ struct TSS
     uint32_t gs;
     uint32_t ldtr;
     uint32_t iopb;
+    uint32_t ssp;
 } __attribute__((packed));
 
 struct Registers

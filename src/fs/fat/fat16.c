@@ -219,26 +219,27 @@ out:
 int init_root_directory(struct Fat16Private *fat16_private, struct disk *disk)
 {
     int res = 0;
+    struct Fat16Entry *entries = 0;
     struct Fat16PrimaryHeader primary_header = fat16_private->fat_header.priamry_header;
     int root_directory_sector_start = primary_header.reserved_sector_count + (primary_header.number_of_fat * primary_header.sectors_per_fat);
     int root_dir_entries = primary_header.root_entry_count;
     int root_dir_size = root_dir_entries * sizeof(struct Fat16Entry);
-    struct Fat16Entry *entries = kzalloc(root_dir_size);
+    entries = kzalloc(root_dir_size);
     if (!entries)
     {
         res = -EMEM;
-        goto out;
+        goto err;
     }
     struct DiskStream *dir_stream = fat16_private->directory_stream;
     if (disk_stream_seek(dir_stream, root_directory_sector_start * disk->sector_size) != 0)
     {
         res = -EIO;
-        goto out;
+        goto err;
     }
     if (disk_stream_read(dir_stream, entries, root_dir_size) != 0)
     {
         res = -EIO;
-        goto out;
+        goto err;
     }
 
     fat16_private->root_directory.directory_item = entries;
@@ -246,6 +247,12 @@ int init_root_directory(struct Fat16Private *fat16_private, struct disk *disk)
     fat16_private->root_directory.sector_pos = root_directory_sector_start;
     fat16_private->root_directory.ending_sector_pos = root_directory_sector_start + (root_dir_size / disk->sector_size);
 out:
+    return res;
+err:
+    if (entries)
+    {
+        kfree(entries);
+    }
     return res;
 }
 
@@ -352,7 +359,7 @@ int get_cluster_for_offset(struct disk *disk, int cluster, int offset)
     for (int i = 0; i < cluster_ahead; i++)
     {
         int entry = get_fat_entry(disk, cluster_to_use);
-        if (entry == 0xFF8 || entry == 0xFFF)
+        if (entry == 0xFFF8 || entry == 0xFFFF)
         {
             res = -EIO;
             goto out;
@@ -390,18 +397,20 @@ int read_entries(struct disk *disk, struct DiskStream *stream, int cluster, int 
     int total_to_read = size > size_of_cluster_in_bytes ? size_of_cluster_in_bytes : size;
     int start_pos = start_sector * disk->sector_size + offset_from_cluster;
     disk_stream_seek(stream, start_pos);
+    int bytes_read = 0;
     res = disk_stream_read(stream, out, total_to_read);
     if (res < 0)
     {
         goto out;
     }
     size -= total_to_read;
+    bytes_read = total_to_read;
     if (size > 0)
     {
-        res += read_entries(disk, stream, cluster, offset + total_to_read, size, out + total_to_read);
+        bytes_read += read_entries(disk, stream, cluster, offset + total_to_read, size, out + total_to_read);
     }
 out:
-    return res;
+    return bytes_read;
 }
 
 int load_entries_from_cluster(struct disk *disk, int start_cluster, int offset, int size, void *out)
@@ -428,7 +437,7 @@ struct Fat16Directory *load_directory(struct disk *disk, struct Fat16Entry *dire
     }
     res = load_entries_from_cluster(disk, cluster, 0, directory_size, directory->directory_item);
 out:
-    if (res < 0)
+    if (res == 0)
     {
         fat16_free_directory(directory);
     }
@@ -506,24 +515,31 @@ struct Fat16Item *get_fat16_directory_item(struct disk *disk, struct Path *path)
 
 void *fat16_open(struct disk *disk, struct Path *path, FileMode mode)
 {
+    struct Fat16Descriptor *descriptor = 0;
     if (mode != FILE_MODE_READ)
     {
-        return 0;
+        goto out;
     }
-    struct Fat16Descriptor *descriptor = kzalloc(sizeof(struct Fat16Descriptor));
+    descriptor = kzalloc(sizeof(struct Fat16Descriptor));
     if (!descriptor)
     {
-        return 0;
+        goto out;
     }
     descriptor->item = get_fat16_directory_item(disk, path);
     if (!descriptor->item)
     {
-        return 0;
+        goto out;
     }
     char filename[ZHIOS_MAX_PATH];
     get_fat16_filename(descriptor->item->item, filename);
     descriptor->pos = 0;
     return descriptor;
+out:
+    if (descriptor)
+    {
+        kfree(descriptor);
+    }
+    return 0;
 }
 
 int fat16_read(struct disk *disk, void *fd, int size, char *out)
@@ -532,6 +548,7 @@ int fat16_read(struct disk *disk, void *fd, int size, char *out)
     struct Fat16Descriptor *descriptor = fd;
     struct Fat16Entry *entry = descriptor->item->item;
     res = load_entries_from_cluster(disk, get_first_cluster(entry), descriptor->pos, size, out);
+    descriptor->pos += res;
     return res;
 }
 

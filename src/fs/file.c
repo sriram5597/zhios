@@ -164,6 +164,18 @@ int fopen(const char *filename, const char *mode)
     fd->disk = disk;
     res = fd->id;
 out:
+    if (res < 0)
+    {
+        // TODO: Enhance cleanup
+        if (path)
+        {
+            free_path(path);
+        }
+        if (private_descriptor_data)
+        {
+            disk->fs->fclose(private_descriptor_data);
+        }
+    }
     return res;
 }
 

@@ -28,6 +28,7 @@ int load_binary(const char *filename, void **data, uint32_t *size)
     if (fread(fd, program_data, stat.size) < 0)
     {
         res = -EIO;
+        kfree(program_data);
         goto out;
     }
     *data = program_data;

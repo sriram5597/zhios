@@ -27,10 +27,10 @@ static bool elf_is_valid_encoding(struct ElfHeader *header)
     return header->e_ident[EI_DATA] == EI_ELFDATANONE || header->e_ident[EI_DATA] == EI_ELFDATA2LSB;
 }
 
-// static bool elf_is_executable(struct ElfHeader *header)
-// {
-//     return header->e_type == ET_EXEC && header->e_entry >= ZHIOS_PROGRAM_VIRTUAL_ADDRESS;
-// }
+static bool elf_is_executable(struct ElfHeader *header)
+{
+    return header->e_type == ET_EXEC && header->e_entry >= ZHIOS_PROGRAM_VIRTUAL_ADDRESS;
+}
 
 static bool elf_has_program_header(struct ElfHeader *header)
 {
@@ -99,7 +99,7 @@ void *elf_get_physical_end(struct ElfFile *file)
 
 int elf_validate_load(struct ElfHeader *header)
 {
-    return (elf_is_valid_signature(header) && elf_is_valid_class(header) && elf_is_valid_encoding(header) && elf_has_program_header(header)) ? 0 : -EINFORMAT;
+    return (elf_is_valid_signature(header) && elf_is_valid_class(header) && elf_is_valid_encoding(header) && elf_has_program_header(header) && elf_is_executable(header)) ? 0 : -EINFORMAT;
 }
 
 int elf_process_pt_load(struct ElfFile *elf_file, struct ElfProgramHeader *pheader)

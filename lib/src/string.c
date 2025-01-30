@@ -101,12 +101,19 @@ int istrncmp(const char *s1, const char *s2, int n)
 void rstrip(const char *s1, char *s2)
 {
     unsigned char c1 = (unsigned char)*s1;
+    int len = strlen(s1);
+    int i = 0;
     while (c1 != '\0' && c1 != 0x20)
     {
         *s2 = c1;
         s1++;
         c1 = *s1;
         s2++;
+        i++;
+        if (i >= len)
+        {
+            break;
+        }
     }
     *s2 = '\0';
 }

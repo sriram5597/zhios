@@ -38,6 +38,8 @@ boot:
     mov ax, 0x00
     mov ds, ax
     mov es, ax
+    mov fs, ax
+    mov gs, ax
     mov ss, ax
     mov sp, 0x7c00
     sti ; Enable Interrupts
@@ -83,9 +85,22 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    ;Enable A20 line
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+
     mov eax, 1
     mov ecx, 100
     mov edi, 0x0100000
+
     call lba_read
     jmp CODE_SEG:0x0100000
 
