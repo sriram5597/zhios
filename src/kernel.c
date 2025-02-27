@@ -17,6 +17,7 @@
 #include "keyboard/keyboard.h"
 
 struct Page *page = 0;
+int x = 5;
 
 extern void kernel_registers();
 
@@ -28,7 +29,7 @@ void kernel_page()
 
 void kernel_main()
 {
-    init_terminal();
+    x = 10;
     init_gdt();
     kheap_init();
     fs_init();
@@ -38,6 +39,7 @@ void kernel_main()
     // enable_interrupts();
     register_system_commands();
     keyboard_init();
+    init_terminal();
 
     struct Process *process = 0;
     int res = process_load_and_switch("0:/bin/shell.elf", &process);

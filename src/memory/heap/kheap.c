@@ -41,3 +41,15 @@ void *kzalloc(size_t size)
     memset(address, 0x00, size);
     return address;
 }
+
+void *realloc(void *ptr, size_t size)
+{
+    void *new_ptr = kzalloc(size);
+    int *cur = (int *)ptr;
+    while (cur != 0)
+    {
+        *((int *)new_ptr) = *cur;
+        cur++;
+    }
+    return new_ptr;
+}

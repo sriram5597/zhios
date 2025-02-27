@@ -2,11 +2,23 @@
 #include "string.h"
 #include <stdint.h>
 #include <stddef.h>
+#include "vesa/vesa.h"
+#include "font/psf.h"
 
 uint16_t *video_mem = 0;
-uint16_t terminal_row = 0;
-uint16_t terminal_col = 0;
+uint16_t terminal_row = TERMINAL_MARGIN;
+uint16_t terminal_col = TERMINAL_MARGIN;
 uint16_t terminal_color = 15;
+
+struct pixel_t terminal_bg = {
+    .blue = 0x2B,
+    .green = 0x0F,
+    .red = 0x07};
+
+struct pixel_t terminal_fg = {
+    .blue = 0xD0,
+    .green = 0xFD,
+    .red = 0xFF};
 
 uint16_t make_terminal_char(char c, char color)
 {
@@ -20,28 +32,38 @@ void terminal_putchar(int x, int y, char c, char color)
 
 void move_to_next_row()
 {
-    terminal_col = 0;
-    terminal_row++;
+    terminal_col = TERMINAL_MARGIN;
+    terminal_row += psf_get_height() + 1;
+}
+
+void move_to_prev_row()
+{
+    terminal_row -= psf_get_height() - 1;
 }
 
 void move_to_next_col()
 {
-    terminal_col++;
+    terminal_col += psf_get_width() + 1;
+}
+
+void move_to_prev_col()
+{
+    terminal_col = terminal_col - psf_get_width() - 1;
 }
 
 void terminal_backspace()
 {
-    if (terminal_row == 0 && terminal_col == 0)
+    if (terminal_row == TERMINAL_MARGIN && terminal_col == TERMINAL_MARGIN)
     {
         return;
     }
-    if (terminal_col == 0)
+    if (terminal_col == TERMINAL_MARGIN)
     {
-        terminal_row -= 1;
-        terminal_col = VGA_WIDTH;
+        move_to_prev_row();
+        terminal_col = get_current_video_mode()->width;
     }
-    terminal_col--;
-    terminal_putchar(terminal_col, terminal_row, ' ', 15);
+    move_to_prev_col();
+    psf_clear_char(terminal_col, terminal_row, terminal_bg);
 }
 
 void terminal_writechar(char c)
@@ -56,9 +78,9 @@ void terminal_writechar(char c)
         terminal_backspace();
         return;
     }
-    terminal_putchar(terminal_col, terminal_row, c, terminal_color);
+    psf_putc(c, terminal_col, terminal_row, terminal_fg);
     move_to_next_col();
-    if (terminal_col >= VGA_WIDTH)
+    if (terminal_col >= get_current_video_mode()->width)
     {
         move_to_next_row();
     }
@@ -74,12 +96,8 @@ void print(const char *str)
 
 void init_terminal()
 {
-    video_mem = (uint16_t *)(0xB8000);
-    for (int y = 0; y < VGA_HEIGHT; y++)
-    {
-        for (int x = 0; x < VGA_WIDTH; x++)
-        {
-            terminal_putchar(x, y, ' ', 0);
-        }
-    }
+    vesa_fill_bg(terminal_bg);
+    psf_init();
+    // psf_puts("Hello World!\nThis is a test", &terminal_col, &terminal_row, terminal_fg);
+    // print("Hello World\nHello World\nHello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello World");
 }

@@ -1,9 +1,10 @@
 ORG 0x7C00
 BITS 16
 
-section .text
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
+CODE16_SEG equ gdt_code16 - gdt_start
+DATA16_SEG equ gdt_data16 - gdt_start
 
 jmp short start
 nop
@@ -45,11 +46,15 @@ boot:
     mov sp, 0x7c00
     sti ; Enable Interrupts
 
-.vesa_init:
+v80_setup:
+    mov ax, 0x7C0
+    mov es, ax       ; ES = 0x5000 (Segment where data will be stored)
+    xor bx, bx       ; BX = 0x0000 (Offset)
+
     mov byte [dap], 0x10  ; DAP size = 16 bytes
     mov byte [dap+1], 0   ; Reserved
     mov word [dap+2], 1   ; Read 1 sector
-    mov word [dap+4], 0x6000 ; Buffer segment
+    mov word [dap+4], 0x5000 ; Buffer segment
     mov word [dap+6], 0x0000 ; Buffer offset
     mov dword [dap+8], 1   ; LBA sector to read (Sector 2)
     mov dword [dap+12], 0  ; Upper 32 bits of LBA (not needed for small disks)
@@ -58,17 +63,16 @@ boot:
     mov dl, 0x80      ; First HDD
     mov si, dap       ; DS:SI = Address of Disk Address Packet
     int 0x13          ; Call BIOS to read sector
-    jc vesa_err
-    push load_protected
-    jmp 0x00:0x6000
+    jc v80_error
 
-load_protected:
+.load_protected:
     cli
     lgdt[gdt_descriptor]
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
-    jmp CODE_SEG:load32
+    ; jmp CODE_SEG:load32
+    jmp CODE16_SEG:0x5000
 
 ; Creating GDT Entries
 gdt_start:
@@ -92,6 +96,23 @@ gdt_data:
     db 0 ; Limit 16-23 bits
     db 0x92 ; Access Byte
     db 11001111b ; High 4 bit flags and the low 4 bit flags
+    db 0        ; Base 24-31 bits
+
+gdt_code16:
+    dw 0xFFFF ; Segment limit first 0-15 bits
+    dw 0x0 ; Base first 0-15 bits
+    db 0 ; Limit 16-23 bits
+    db 0x9A ; Access Byte
+    db 0000b ; High 4 bit flags and the low 4 bit flags
+    db 0        ; Base 24-31 bits
+
+
+gdt_data16:
+    dw 0xFFFF ; Segment limit first 0-15 bits
+    dw 0x0 ; Base first 0-15 bits
+    db 0 ; Limit 16-23 bits
+    db 0x92 ; Access Byte
+    db 0000b ; High 4 bit flags and the low 4 bit flags
     db 0        ; Base 24-31 bits
 
 
@@ -174,11 +195,11 @@ lba_read:
     loop .next_sector
     ret
 
-vesa_err:
-    mov al, 'F'
+v80_error:
+    mov al, 'E'
     mov ah, 0x0E
     int 0x10
-    hlt
+    jmp $
 
 dap:
     db 0x10  ; Size of packet (16 bytes)

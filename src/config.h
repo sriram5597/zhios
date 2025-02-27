@@ -32,4 +32,6 @@
 
 #define ZHIOS_MAX_KEYBOARD_BUFFER_SIZE 1024
 
+#define ZHIOS_MAX_FONTS 5
+
 #endif

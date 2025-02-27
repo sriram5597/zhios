@@ -1,7 +1,6 @@
 ORG 0x7C00
 BITS 16
 
-section .text
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
@@ -45,24 +44,7 @@ boot:
     mov sp, 0x7c00
     sti ; Enable Interrupts
 
-.vesa_init:
-    mov byte [dap], 0x10  ; DAP size = 16 bytes
-    mov byte [dap+1], 0   ; Reserved
-    mov word [dap+2], 1   ; Read 1 sector
-    mov word [dap+4], 0x6000 ; Buffer segment
-    mov word [dap+6], 0x0000 ; Buffer offset
-    mov dword [dap+8], 1   ; LBA sector to read (Sector 2)
-    mov dword [dap+12], 0  ; Upper 32 bits of LBA (not needed for small disks)
-
-    mov ah, 0x42
-    mov dl, 0x80      ; First HDD
-    mov si, dap       ; DS:SI = Address of Disk Address Packet
-    int 0x13          ; Call BIOS to read sector
-    jc vesa_err
-    push load_protected
-    jmp 0x00:0x6000
-
-load_protected:
+.load_protected:
     cli
     lgdt[gdt_descriptor]
     mov eax, cr0
@@ -115,7 +97,7 @@ load32:
     or al, 2
     out 0x92, al
 
-    mov eax, 2
+    mov eax, 1
     mov ecx, 100
     mov edi, 0x0100000
 
@@ -173,21 +155,6 @@ lba_read:
     pop ecx
     loop .next_sector
     ret
-
-vesa_err:
-    mov al, 'F'
-    mov ah, 0x0E
-    int 0x10
-    hlt
-
-dap:
-    db 0x10  ; Size of packet (16 bytes)
-    db 0     ; Reserved
-    dw 1     ; Number of sectors to read
-    dw 0x5000 ; Destination segment
-    dw 0x0000 ; Destination offset
-    dd 1     ; LBA address (Sector 2)
-    dd 0     ; Upper 32 bits (not needed)
 
 times 510-($ - $$) db 0
 dw 0xAA55
